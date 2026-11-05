@@ -1,0 +1,46 @@
+# ESP Screens - a LOLIN TFT 2.4 ILI9341 built from a clone of this repository. Written by tools/generate_entries.py
+# from boards.yaml; do not edit. checkout/README.md says how to build it.
+#
+# The screen is two packages: packages/core.yaml, which every board shares, and packages/boards/lolin24.yaml with
+# this board's hardware and sizes (docs/PROFILES.md). A screen installed from ESP Screens builds the same two over
+# GitHub through packages/lolin24.yaml; this file only adds what a build from a checkout needs: the fonts and the
+# components of this checkout, and the secrets (api_encryption_key, ota_password, Wi-Fi) from checkout/secrets.yaml.
+substitutions:
+  FONT_DIR: "../fonts"
+  CALIBRATION_ON_BOOT: "false"
+  BOOT_CARDS_TAIL: ""
+
+packages:
+  core: !include ../packages/core.yaml
+  board: !include ../packages/boards/lolin24.yaml
+  hotspot: !include ../packages/features/hotspot.yaml
+
+external_components:
+  - source:
+      type: local
+      path: ../components
+    components: [xpt2046, smart_display]
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    encryption:
+    allow_partition_access: true
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  # Mains-powered panel: no modem sleep, so HA updates and OTA arrive without beacon latency.
+  power_save_mode: none
+  ap:
+    ssid: "Tessera ${DEVICE_FRIENDLY_NAME}"
+    password: !secret ap_password
+  manual_ip:
+    static_ip: 192.168.40.168
+    gateway: 192.168.40.1
+    subnet: 255.255.255.0
+
+captive_portal:
