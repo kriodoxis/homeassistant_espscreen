@@ -11,8 +11,6 @@ packages:
 substitutions:
   # The key of this board file; the firmware reports it so ESP Screens knows what board a screen is.
   BOARD_ID: "lolin24"
-  DEVICE_NAME: "lolin24-new"
-  DEVICE_FRIENDLY_NAME: "My lolin24"
 
   # The glass: the panel's own pixels and its density, 400 diagonal pixels over 2.4 inches.
   PANEL_W: "240"
@@ -85,30 +83,6 @@ output:
     frequency: ${BACKLIGHT_FREQUENCY}
     min_power: 0.0
     max_power: 0.8
-
-binary_sensor:
-  - platform: status
-    id: device_status
-    name: "${DEVICE_FRIENDLY_NAME} Status"
-  - platform: homeassistant
-    id: presence_sensor
-    entity_id: binary_sensor.ld2410_studio_presence
-    internal: true
-    on_state:
-      then:
-        - if:
-            condition:
-              binary_sensor.is_on: presence_sensor
-            then:
-              - output.set_level:
-                  id: gpio_backlight_pwm
-                  level: 100%
-              - lvgl.resume:
-            else:
-              - output.set_level:
-                  id: gpio_backlight_pwm
-                  level: 0%
-              - lvgl.pause:
 
 # Touchscreen configuration (XPT2046, resistive, via SPI)
 # XPT2046 calibration is board-specific. Poll at 50Hz; LVGL rotates touch
