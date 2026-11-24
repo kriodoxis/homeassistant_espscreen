@@ -197,7 +197,11 @@
       "plugins": "Plugin",
       "microphone_gain": "Guadagno microfono",
       "automatic_gain": "Guadagno automatico",
-      "echo_cancellation": "Cancellazione eco"
+      "call_ringtone": "Suoneria",
+      "do_not_disturb": "Non disturbare",
+      "call_voice_switching": "Alternanza voce",
+      "echo_cancellation": "Cancellazione eco",
+      "loop_pages": "Pagine in ciclo"
     },
     "doorbell": {
       "sound_on": "Audio attivo",
@@ -206,7 +210,12 @@
       "door_confirm": "Tocca di nuovo per aprire",
       "door_sent": "Inviato",
       "talk": "Parla",
-      "coming_soon": "Prossimamente"
+      "tap_talk": "Tocca per parlare",
+      "talking": "In conversazione",
+      "tap_stop": "Tocca per fermare",
+      "connecting": "Connessione",
+      "talk_busy": "Qualcun altro sta parlando",
+      "talk_failed": "Nessuna connessione"
     },
     "tile": {
       "tap_to_open": "Tocca per aprire",
@@ -649,6 +658,42 @@
       "calendars": "Calendari",
       "also": "+{x} ora",
       "booked": "Prenotato sullo schermo"
+    },
+    "todo": {
+      "open": "{x} da fare",
+      "all_done": "Tutto fatto",
+      "more": "+{x} altri",
+      "completed": "Completati",
+      "add": "Aggiungi elemento",
+      "added": "{x} aggiunto",
+      "rename": "Rinomina",
+      "remove": "Rimuovi",
+      "cancel": "Annulla",
+      "clear": "Rimuovere {x} completati?",
+      "waiting": "Caricamento",
+      "empty": "Niente nella lista",
+      "yesterday": "Ieri"
+    },
+    "call": {
+      "title": "Chiama",
+      "calling": "Chiamata in corso",
+      "calling_video": "Videochiamata in corso",
+      "video": "Videochiamata",
+      "audio": "Chiamata",
+      "decline": "Rifiuta",
+      "answer": "Rispondi",
+      "ended": "Chiamata terminata",
+      "declined": "Rifiutata",
+      "busy": "Occupato",
+      "no_answer": "Nessuna risposta",
+      "quiet": "Non disturbare",
+      "gone": "Non raggiungibile",
+      "available": "Disponibile",
+      "sound_only": "Disponibile, solo audio",
+      "in_call": "In chiamata",
+      "offline": "Offline",
+      "missed_at": "Chiamata persa",
+      "no_screens": "Nessun altro schermo da chiamare"
     }
   },
   "addon": {
@@ -667,6 +712,7 @@
       "not_paired": "Questo non è uno schermo ESP associato. Ricarica la panoramica.",
       "choose_icon": "Scegli un'icona dall'elenco.",
       "skill_not_written": "Impossibile scrivere la skill in {folder} ({reason}).",
+      "skill_no_home_assistant": "La skill non può essere installata da qui: {folder} non è la cartella di configurazione di Home Assistant. Scaricala invece per claude.ai.",
       "settings": {
         "unknown": "Impostazioni dello schermo sconosciute; ricarica la pagina di gestione.",
         "invalid_value": "Valore non valido per {setting}.",
@@ -821,7 +867,10 @@
         "unknown_action": "Azione firmware sconosciuta.",
         "host": "Inserisci l'indirizzo IP o il nome host dello schermo giusto.",
         "grid": "Scegli una griglia che questo schermo accetta.",
-        "build_gone": "Questa compilazione non è più nota. Le più recenti sono in Firmware e USB."
+        "build_gone": "Questa compilazione non è più nota. Le più recenti sono in Firmware e USB.",
+        "log_gone": "Questo log di compilazione non è più conservato.",
+        "friendly_name_quote": "Il nome di uno schermo non può contenere \" né \\. Scrivi 4 pollici come 4in, per esempio.",
+        "chip_revision": "La revisione del chip deve essere un numero intero, come 302 per v3.2."
       },
       "updates": {
         "automatic": "Scegli attivo o disattivo per gli aggiornamenti automatici.",
@@ -835,7 +884,8 @@
         "all_updated": "Tutti gli schermi raggiungibili sono già aggiornati.",
         "reinstall_dev": "Reinstallare lo stesso firmware è possibile solo sul canale dev.",
         "all_on_the_way": "Ogni schermo con un aggiornamento lo ha già in arrivo.",
-        "nothing_to_reinstall": "Ora nessuno schermo può essere reinstallato: ognuno è offline, già in arrivo o senza profilo in questa app."
+        "nothing_to_reinstall": "Ora nessuno schermo può essere reinstallato: ognuno è offline, già in arrivo o senza profilo in questa app.",
+        "hour": "Scegli un'ora da 0 a 23."
       },
       "remove": {
         "not_allowed": "Questa app non può rimuovere un'integrazione da Home Assistant. Rimuovi lo schermo in Home Assistant, in Impostazioni → Dispositivi e servizi.",
@@ -878,7 +928,7 @@
         "workspace_position": "Posizione non valida sulla mappa",
         "workspace_conflict": "La mappa è stata modificata in un altro editor",
         "layout_conflict": "La disposizione è stata modificata in un altro editor; ricarica e confronta la bozza",
-        "adaptation": "La griglia dello schermo è cambiata; occorre adattare esplicitamente la disposizione",
+        "adaptation": "Questo cambio di griglia non è stato salvato. Salva lo schermo una volta con la griglia che ha ora, poi cambia la griglia. Se nel frattempo qualcuno ha salvato questo schermo in un'altra finestra, ricaricalo prima.",
         "normalization": "Le opzioni delle tessere devono essere normalizzate prima di salvare la pagina",
         "on_tile": "Pagina {page}, tessera «{tile}»: {problem}",
         "ambiguous_tile": "L’evento della tessera ha un’origine ambigua; specifica la pagina",
@@ -886,7 +936,11 @@
         "destination_exists": "Lo schermo di destinazione ha già una disposizione salvata",
         "update_tall": "Aggiorna lo schermo per usare queste dimensioni di tessera",
         "memory": "Lo schermo non ha abbastanza memoria libera per questo layout. Usa meno riquadri.",
-        "grid_range": "Questo schermo non accetta una griglia di queste dimensioni. Scegli un’altra griglia accanto all’anteprima."
+        "grid_range": "Questo schermo non accetta una griglia di queste dimensioni. Scegli un’altra griglia accanto all’anteprima.",
+        "section_title": "Una sezione ha bisogno di un nome di al massimo 48 byte.",
+        "section_tiles": "I riquadri di una sezione devono stare al suo interno, e un riquadro a pagina intera non sta mai in una sezione.",
+        "section_overlap": "Sezioni e riquadri liberi non possono occupare le stesse celle.",
+        "sections_full": "Una pagina ha al massimo 16 sezioni."
       },
       "feedback": {
         "invalid": "Questa risposta non può essere condivisa. Scegli sì o non del tutto, e solo i problemi elencati.",
@@ -939,7 +993,8 @@
         "rate_not_installed": "Metti prima il plugin su uno dei tuoi schermi, poi potrai valutarlo.",
         "rate_failed": "Le stelle non sono state inviate. Riprova tra un attimo.",
         "count_failed": "Non è stato possibile disattivare il conteggio: Tessera non era raggiungibile. Riprova tra un attimo.",
-        "forget_running": "Uno schermo usa ancora questo plugin. Toglilo prima dallo schermo."
+        "forget_running": "Uno schermo usa ancora questo plugin. Toglilo prima dallo schermo.",
+        "no_before": "Non c'è una versione precedente di questo plugin a cui tornare."
       },
       "extras": {
         "request": "Questa modifica di un extra non è possibile su questo schermo."
@@ -959,9 +1014,16 @@
         "unknown": "Il server di compilazione non riconosce più Tessera. Abbinalo di nuovo.",
         "pending": "Il server di compilazione non ha ancora accettato Tessera."
       },
+      "build_files": {
+        "automatic": "La pulizia automatica può essere solo attiva o disattiva.",
+        "level": "Scegli quali file di compilazione rimuovere.",
+        "cleaning": "I file di compilazione sono già in pulizia.",
+        "building": "Uno schermo è in compilazione o in attesa. Pulisci i file di compilazione quando ha finito."
+      },
       "video": {
         "not_written": "Impossibile scrivere Tessera video in {folder}: {reason}.",
-        "not_installed": "Installa prima Tessera video."
+        "not_installed": "Installa prima Tessera video.",
+        "no_home_assistant": "Tessera video non può essere installato da qui: {folder} non è la cartella di configurazione di Home Assistant. Scarica l'integrazione ed estraila lì."
       },
       "report": {
         "depth": "Scegli il rapporto di base o quello completo.",
@@ -983,6 +1045,22 @@
         "refused": "Home Assistant ha rifiutato l'automazione: {reason}",
         "not_ours": "Quell'automazione non è stata creata da Tessera, quindi l'app non la tocca.",
         "invalid": "Questa automazione non può essere salvata ({part})."
+      },
+      "icons": {
+        "request": "Questo non è un elenco di icone.",
+        "too_many": "Uno schermo accetta al massimo {most} icone proprie."
+      },
+      "sounds": {
+        "name": "Dai un nome al suono.",
+        "many": "Ci sono già {most} suoni tuoi. Rimuovine prima uno.",
+        "format": "Un suono è un file WAV a 16 kHz, mono, 16 bit.",
+        "short": "Un suono dura almeno un quarto di secondo.",
+        "long": "Un suono dura al massimo {seconds} secondi.",
+        "unknown": "Quel suono non esiste.",
+        "volume": "Un volume è un numero intero di dB da -40 a 0.",
+        "none": "Questo schermo non riproduce nessun suono per questo. Scegline prima uno.",
+        "older": "Questo schermo ha bisogno di un aggiornamento del firmware per questo.",
+        "busy": "Questo schermo è in chiamata in questo momento."
       }
     },
     "status": {
@@ -1014,10 +1092,15 @@
       "build_memory_limit": "Memoria insufficiente per compilare il firmware, anche con un compilatore alla volta. Ferma qualche componente aggiuntivo per un po' o dai più memoria alla macchina; vedi Firmware e USB.",
       "no_report": "Lo schermo non si è ripresentato con il firmware {version}; controlla lo schermo.",
       "dropped_off": "Lo schermo si è disconnesso dopo l'aggiornamento; controlla lo schermo.",
-      "updated": "Aggiornato al firmware {version}."
+      "updated": "Aggiornato al firmware {version}.",
+      "round_stopped": "Non aggiornato: uno schermo precedente nel giro non ha superato il controllo, quindi il giro si è fermato."
     },
     "notify": {
-      "update_stopped": "L'aggiornamento automatico si è fermato allo schermo {name}: {reason} Gli altri schermi non sono stati toccati."
+      "update_stopped": "L'aggiornamento automatico si è fermato allo schermo {name}: {reason} Gli altri schermi non sono stati toccati.",
+      "plugin_failed": "{names} non si è compilato su {screen}: {reason} Lo schermo resta con ciò che aveva. Apri Tessera e poi la scheda Plugin dello schermo per il motivo e il log.",
+      "updates": "Ci sono aggiornamenti pronti per i tuoi schermi. Apri Tessera per installarli.",
+      "updates_firmware": "firmware {version}",
+      "plugin_waits": "{names} è compilato per {screen}, ma {screen} non era raggiungibile. Si installa da solo appena lo schermo torna."
     },
     "labels": {
       "built_into_screen": "Integrato nello schermo",
@@ -1198,6 +1281,18 @@
         "automatic_gain": {
           "label": "Guadagno automatico",
           "hint": "Consente al codec del microfono di regolare il livello di registrazione. Indipendente dalla cancellazione dell'eco."
+        },
+        "call_ringtone": {
+          "label": "Suoneria",
+          "hint": "Disattivata: a una chiamata lo schermo si accende e mostra chi chiama, senza suono."
+        },
+        "do_not_disturb": {
+          "label": "Non disturbare",
+          "hint": "Attivo: una chiamata a questo schermo viene rifiutata subito e chi chiama legge il motivo. Il campanello suona comunque."
+        },
+        "call_voice_switching": {
+          "label": "Alternanza voce",
+          "hint": "Attiva: il microfono del lato che ascolta si abbassa, così una voce non torna come eco. Disattivata: entrambi i lati possono parlare insieme. Un piccolo tasto nella chiamata la cambia per quella chiamata."
         },
         "echo_cancellation": {
           "label": "Cancellazione eco",
@@ -1445,7 +1540,8 @@
         "alert_outline": "Attenzione",
         "cog": "Impostazioni",
         "broom": "Pulizie",
-        "diabetes": "Diabete"
+        "diabetes": "Diabete",
+        "phone": "Phone"
       }
     },
     "screen": {
@@ -1455,7 +1551,8 @@
         "page": "Vai alla pagina {page}",
         "map": "Mappa",
         "energy": "Energia",
-        "text": "Modello"
+        "text": "Modello",
+        "call": "Chiama"
       },
       "identify": {
         "title": "Questo è {name}",
@@ -1576,6 +1673,18 @@
         "missed": "Nessuno l'ha toccato prima del timeout",
         "seen": "Uno squillo perso è stato riaperto dalla barra in alto"
       }
+    },
+    "layoutbot": {
+      "none": "Layoutbot ha bisogno di un AI Task in Home Assistant che possa generare dati (Impostazioni > Dispositivi e servizi, un'integrazione IA).",
+      "notes": {
+        "unknown": "{entity} tralasciato: non è un'entità di questo Home Assistant.",
+        "no_page": "Non esiste la pagina {page}.",
+        "kept": "Layoutbot ha dimenticato {count} dei tuoi riquadri: sono sparsi nell'ultima pagina."
+      },
+      "nothing_to_restructure": "Su questa pagina non ci sono ancora riquadri di dispositivi da ristrutturare. Aggiungine qualcuno e chiedi di nuovo."
+    },
+    "sounds": {
+      "test": "Prova della suoneria"
     }
   },
   "editor": {
@@ -1593,6 +1702,8 @@
       "read_current_data": "Leggi i dati attuali",
       "results": "1 risultato. Continua a scrivere per restringere l'elenco. | {n} risultati. Continua a scrivere per restringere l'elenco.",
       "close": "Chiudi",
+      "expand": "Mostra di più",
+      "collapse": "Mostra meno",
       "remove": "Rimuovi",
       "loading": "Caricamento…",
       "back": "← Indietro",
@@ -1712,7 +1823,11 @@
         "kept": "{name} è stato rimosso. Il suo profilo {file} è ancora nella cartella ESPHome."
       },
       "home": "Panoramica dei tuoi schermi",
-      "dev_chip": "Questa è la versione dev dell'app: ogni schermo che compila viene dal ramo dev."
+      "dev_chip": "Questa è la versione dev dell'app: ogni schermo che compila viene dal ramo dev.",
+      "plugins": {
+        "failed": "Un plugin non si è compilato",
+        "updates": "{n} aggiornamento di plugin | {n} aggiornamenti di plugin"
+      }
     },
     "palette": {
       "groups": {
@@ -1903,6 +2018,7 @@
       "search_label": "Aggiungi un'entità",
       "filters": {
         "all": "Tutti",
+        "plugin": "Plugin",
         "light": "Luci",
         "climate": "Clima",
         "switch": "Interruttori",
@@ -1917,6 +2033,7 @@
         "vacuum": "Aspirapolvere",
         "sensor": "Sensori",
         "media_player": "Media",
+        "camera": "Telecamere",
         "weather": "Meteo",
         "number": "Valori",
         "select": "Selezioni",
@@ -1926,7 +2043,9 @@
         "alarm_control_panel": "Allarme",
         "lock": "Serrature",
         "humidifier": "Umidificatori",
-        "calendar": "Calendari"
+        "calendar": "Calendari",
+        "todo": "Liste di cose da fare",
+        "text": "Testi"
       },
       "room": "Area",
       "hide_placed": "Nascondi quelle già inserite",
@@ -1934,12 +2053,29 @@
       "again": "Già su questo schermo; aggiungilo di nuovo per un altro riquadro",
       "all_placed": "Tutto ciò che è qui è già su questo schermo.",
       "none_found": "Nessuna entità trovata. Prova un altro nome, un'altra area o un altro filtro.",
+      "found_elsewhere": "Niente in questa selezione, ma 1 entità corrisponde nell'intera libreria. | Niente in questa selezione, ma {n} entità corrispondono nell'intera libreria.",
+      "search_everything": "Mostra tutti i risultati",
       "full": "Questo schermo può contenere 1 riquadro. | Questo schermo può contenere {n} riquadri.",
       "full_update": "Questo schermo può contenere 1 riquadro; aggiorna il suo firmware per averne 48. | Questo schermo può contenere {n} riquadri; aggiorna il suo firmware per averne 48.",
       "hint": "Trascina su una pagina, o tocca + per aggiungere al primo spazio libero. ⌘K cerca ovunque.",
       "resize": "Trascina per ridimensionare la libreria",
       "filter_label": "Filtra per tipo",
-      "no_room": "Senza stanza"
+      "no_room": "Senza stanza",
+      "tiles": {
+        "view": "Come la libreria mostra le entità",
+        "tiles": "Riquadri",
+        "list": "Elenco",
+        "tiles_title": "Mostra ogni entità come i riquadri che può essere, nelle loro dimensioni",
+        "list_title": "Mostra le entità come elenco",
+        "placed": "Su questo schermo",
+        "add_size": "Aggiungi {name} come riquadro {columns} × {rows}"
+      },
+      "extras": {
+        "title": "{n} extra | {n} extra",
+        "config": "Impostazioni",
+        "diagnostic": "Diagnostica",
+        "hidden": "Nascosta in Home Assistant"
+      }
     },
     "plugins": {
       "title": "Plugin",
@@ -1968,7 +2104,9 @@
         "fits_none": "Non adatto a nessuno dei tuoi schermi",
         "failed": "Compilazione non riuscita",
         "not_running": "Non è in esecuzione sullo schermo",
-        "queued": "Attende il suo turno"
+        "queued": "Attende il suo turno",
+        "runs_other": "Sullo schermo gira la versione {version}",
+        "update_failed": "Aggiornamento {version} non riuscito"
       },
       "source": {
         "link": "Da un link",
@@ -2025,6 +2163,8 @@
         "title": "Cosa aggiunge",
         "tile": "Riquadro «{name}»",
         "tile_sizes": "Da {min} a {max} su una pagina",
+        "tile_sizes_or_page": "Da {min} a {max} su una pagina, o l'intera pagina",
+        "tile_only_page": "L'intera pagina",
         "tap": "Azione al tocco «{name}»",
         "tap_on": "Sui riquadri di {domains}",
         "card": "«{name}», una vista tutta sua sullo schermo",
@@ -2038,7 +2178,10 @@
         "ha_none": "Non esegue azioni in Home Assistant",
         "network": "Si collega a {hosts}",
         "network_none": "Non si collega a nulla al di fuori di Home Assistant",
-        "read": "Legge queste entità da Home Assistant"
+        "read": "Legge queste entità da Home Assistant",
+        "sends": "Invia a {host}: {what}",
+        "sends_option": "{attributes} dell'entità che scegli per {option}",
+        "sends_state": "stato"
       },
       "warning": "Un plugin gira sul tuo schermo con pieno accesso, compresi il Wi-Fi e le azioni che lo schermo può eseguire in Home Assistant, e la sua compilazione gira in questa app, dove può accedere alla tua configurazione di Home Assistant. Aggiungi solo plugin di autori di cui ti fidi, o leggi prima il codice.",
       "room": {
@@ -2094,8 +2237,6 @@
         "here": "Su questo schermo",
         "add": "Aggiungi",
         "misfits": "Non adatto a questo schermo ({n}) | Non adatti a questo schermo ({n})",
-        "updates": "Un aggiornamento per {n} plugin | Aggiornamenti per {n} plugin",
-        "updates_note": "Una sola compilazione per {screen}: {names}.",
         "updates_rights": "{names} chiede permessi diversi da prima. | {names} chiedono permessi diversi da prima.",
         "update_all": "Aggiorna tutto su questo schermo"
       },
@@ -2124,7 +2265,7 @@
       },
       "folder_error": "La cartella {folder} non è ancora un plugin: {why}",
       "rebuild": "Compila di nuovo",
-      "failed": "Il firmware per {screen} non si è compilato con questo plugin. Il registro è in Firmware e USB.",
+      "failed": "Il firmware di {screen} non si è compilato con questo plugin.",
       "retry": "Riprova",
       "privacy": "Privacy",
       "consent": {
@@ -2194,6 +2335,7 @@
         "too_short": "Almeno {n} caratteri."
       },
       "tabs": {
+        "all": "Tutti",
         "tiles": "Riquadri",
         "screensavers": "Salvaschermi",
         "functions": "Funzioni",
@@ -2232,6 +2374,7 @@
         "used": "Più usati"
       },
       "none_in_tab": {
+        "all": "Ancora nessun plugin.",
         "tiles": "Ancora nessun plugin con riquadri.",
         "screensavers": "Ancora nessun plugin salvaschermo.",
         "functions": "Ancora nessun plugin per tutto lo schermo.",
@@ -2295,7 +2438,7 @@
         "none": "L'autore non ha scritto note per questo aggiornamento.",
         "history": "Tutte le versioni"
       },
-      "failed_update": "La versione {version} non si è compilata per {screen}, che è tornato a {current}, quella che esegue. Il registro è in Firmware e USB.",
+      "failed_update": "La versione {version} non si è compilata per {screen}, quindi è tornato a {current}, quella che esegue.",
       "interrupted": "L'app si è riavviata durante la compilazione.",
       "stars": {
         "label": "Stelle per {name}",
@@ -2347,7 +2490,46 @@
       },
       "forget": {
         "go": "Rimuovi dall'elenco",
-        "note": "Nessuno schermo usa questo plugin. Rimuovilo dall'elenco per dimenticare il link."
+        "note": "Nessuno schermo usa questo plugin. Rimuovilo dall'elenco per dimenticare il link.",
+        "note_folder": "Nessuno schermo usa questo plugin dalla sua cartella. Rimuovendolo, la cartella passa in config/tessera-plugins/.removed/{id}, dove puoi eliminarla definitivamente."
+      },
+      "runs_elsewhere": "{screen} esegue la versione {running}, compilata altrove. Compilandola qui vi si installa la versione {version}.",
+      "suggest": {
+        "why": {
+          "camera": "Questa scheda ha una fotocamera."
+        },
+        "question": "Aggiungere {name} a {screen}?",
+        "yes": "Aggiungi",
+        "yes_update": "Aggiungi con il prossimo aggiornamento",
+        "no": "No, grazie",
+        "building": "{name} è in compilazione per {screen}.",
+        "with_update": "{name} arriva con il prossimo aggiornamento di {screen}.",
+        "declined": "Va bene. {name} resta nella pagina Plugin se lo vorrai più tardi."
+      },
+      "download_log": "Scarica il log",
+      "failures": {
+        "update": "{name} {version} non si è compilato su {screen}",
+        "added": "{name} non si è compilato su {screen}",
+        "update_note": "Lo schermo esegue ancora la versione {current}. Il log dice perché.",
+        "added_note": "Non è sullo schermo. Il log dice perché.",
+        "no_log": "Di questa compilazione non è stato conservato alcun log.",
+        "details": "Dettagli",
+        "report": "Segnala a {maker}",
+        "report_hint": "Segnalare apre una issue sul GitHub dell'autore, già compilata. Allega il log scaricato.",
+        "why": {
+          "plugin": "Si è fermato nel codice del plugin stesso, che il suo autore può correggere.",
+          "memory": "Questo Home Assistant ha esaurito la memoria durante la compilazione. Un server di compilazione su un altro computer lo compila senza quel limite.",
+          "offline": "È stato compilato, ma {screen} non l'ha preso, nemmeno dopo essere tornato. Controlla che sia acceso e sul Wi-Fi.",
+          "offline_wait": "È stato compilato, ma {screen} non era raggiungibile. Si installa da solo appena lo schermo torna.",
+          "network": "Un download necessario non è arrivato, nemmeno al secondo tentativo. Riprova tra un momento.",
+          "build": "Il log dice perché.",
+          "interrupted": "L'app si è riavviata durante la compilazione, e di nuovo nel tentativo successivo."
+        },
+        "build_server": "Configura un server di compilazione"
+      },
+      "back": {
+        "button": "Torna a {version}",
+        "not_running": "{screen} è tornato senza {name} dopo l'aggiornamento. Tornare alla versione precedente di solito aiuta."
       }
     },
     "plugin_tile": {
@@ -2360,6 +2542,9 @@
       "from_fetch": "Le scelte vengono dalla fonte di dati del plugin stesso, tramite Tessera.",
       "on_screen": "Sullo schermo",
       "sizes": "Da {min} a {max}; trascina un bordo del riquadro per cambiarne le dimensioni.",
+      "sizes_or_page": "Da {min} a {max}, o l'intera pagina; trascina un bordo del riquadro per cambiarne le dimensioni.",
+      "sizes_only_page": "Questo riquadro occupa sempre un'intera pagina.",
+      "whole_page": "Pagina intera",
       "placeholder": "L'editor mostra un segnaposto: ciò che il plugin disegna appare sullo schermo stesso.",
       "now": "ora",
       "minutes": "{n} min",
@@ -2374,7 +2559,14 @@
       "remove": "Rimuovi {name}",
       "type": "Scrivi e premi Invio",
       "full": "Lo schermo non accetta altro per questo riquadro: le sue opzioni sono piene.",
-      "count": "{n} di {max}"
+      "count": "{n} di {max}",
+      "show_all": "Mostra tutte le entità",
+      "show_fitting": "Mostra solo quelle adatte",
+      "not_set": "Non impostato",
+      "fill_device": "Compila da un dispositivo",
+      "fill_device_hint": "Scegli un dispositivo e i suoi sensori vengono compilati qui sotto. Puoi ancora cambiare ciascuno.",
+      "fill_device_none": "Nessun dispositivo ha due o più di questi sensori",
+      "fill_device_count": "1 sensore | {n} sensori"
     },
     "memory": {
       "label": "Memoria per i riquadri",
@@ -2424,7 +2616,10 @@
       "alarm_control_panel": "Pannello allarme",
       "lock": "Serratura",
       "humidifier": "Umidificatore",
-      "calendar": "Calendario"
+      "calendar": "Calendario",
+      "todo": "Lista di cose da fare",
+      "text": "Testo",
+      "input_text": "Testo"
     },
     "displays": {
       "standard": "standard",
@@ -2869,6 +3064,18 @@
         "never": "Non mostrare più",
         "done": "Fatto"
       },
+      "look": {
+        "title": "Che aspetto deve avere?",
+        "text": "Questo sensore parte come indicatore. Punta su un aspetto per vederlo sul riquadro; puoi cambiarlo dopo in Visualizzazione.",
+        "ring": "Indicatore: anello",
+        "tape": "Indicatore: scala",
+        "bar": "Indicatore: barra",
+        "graph": "Grafico delle ultime ore",
+        "watch": "Valore grande",
+        "standard": "Solo il valore",
+        "never": "Non mostrare più",
+        "done": "Fatto"
+      },
       "text": {
         "title": "Modello",
         "hint": "Scrivi testo con modelli di Home Assistant, come in Strumenti per sviluppatori › Modello. Home Assistant lo compila, e lo schermo mostra il risultato e lo tiene aggiornato. Se il risultato è vuoto, il riquadro scompare.",
@@ -2920,6 +3127,46 @@
           "unknown": "{id} non esiste in Home Assistant",
           "replace": "Sostituisci con {id}"
         }
+      },
+      "todo": {
+        "title": "Lista di cose da fare",
+        "plain": "Questa scheda non può mostrare una lista: serve una scheda con 8 MB di flash o più. Rimuovi questa tessera.",
+        "needs_firmware": "La lista richiede il firmware 0.61.0 o successivo: premi Aggiorna sullo schermo dopo aver salvato.",
+        "order": {
+          "label": "Ordine",
+          "hint": "Come li ordina la scheda lista di Home Assistant",
+          "none": "Come in Home Assistant",
+          "alpha_asc": "Nome, dalla A alla Z",
+          "alpha_desc": "Nome, dalla Z alla A",
+          "duedate_asc": "Scadenza, la prima prima",
+          "duedate_desc": "Scadenza, l'ultima prima"
+        },
+        "completed": "Elementi completati",
+        "completed_hint": "Sotto quelli da fare, barrati, dove c'è spazio",
+        "due": "Scadenze",
+        "due_hint": "Il giorno accanto a un elemento; in ritardo è rosso",
+        "screen": "Sullo schermo",
+        "add": "Aggiungi elementi",
+        "add_hint": "Un tasto più sulla tessera e un campo nella lista aprono la tastiera dello schermo",
+        "suggest": "Suggerisci nomi",
+        "suggest_hint": "Mentre scrivi, la tastiera propone ciò che è stato spuntato prima; un tocco lo rimette nella lista",
+        "clear": "Rimuovi completati",
+        "clear_hint": "Un tasto nella lista rimuove tutto ciò che è spuntato, dopo una conferma"
+      },
+      "call": {
+        "section": "Chiamata",
+        "who": "Chiama",
+        "who_hint_all": "Un tocco apre l'elenco degli schermi.",
+        "who_hint_one": "Un tocco chiama subito questo schermo.",
+        "everyone": "Scegli dall'elenco",
+        "kind": "Tipo di chiamata",
+        "kind_hint": "Il video richiede il plugin Screen camera con la sua parte Video su entrambi gli schermi, altrimenti è una chiamata con audio.",
+        "video": "Video dove possibile",
+        "sound": "Solo audio"
+      },
+      "text_entity": {
+        "edit": "Un tocco apre il valore in un campo con la tastiera dello schermo. Una password appare come punti.",
+        "view_only": "Questa scheda mostra solo il valore: per cambiarlo sullo schermo serve una scheda con 8 MB di flash o più."
       }
     },
     "precision": {
@@ -2956,7 +3203,9 @@
       "search_label": "Cerca un'icona",
       "none_text_only": "Nessuna icona, solo testo",
       "aria": "Icona: {name}",
-      "none_found": "Nessuna icona trovata."
+      "none_found": "Nessuna icona trovata.",
+      "own": "Icone di questo schermo",
+      "more": "Altre icone"
     },
     "inspect": {
       "title": "Dati attuali",
@@ -3074,7 +3323,8 @@
         "swipe_pages": "Scorri tra le pagine",
         "page_buttons": "Pulsanti pagina",
         "home_button": "Mostra il pulsante home",
-        "rotation": "Rotazione"
+        "rotation": "Rotazione",
+        "loop_pages": "Pagine in ciclo"
       },
       "actions": {
         "calibrate": {
@@ -3227,6 +3477,35 @@
       "extras": {
         "title": "Extra",
         "note": "Impostazioni che ha solo questo schermo, dalla sua scheda. Gli stessi interruttori sono nella pagina impostazioni dello schermo e in Home Assistant."
+      },
+      "parts": {
+        "display": {
+          "title": "Schermo",
+          "grid": "{columns} × {rows} riquadri"
+        },
+        "standby": {
+          "title": "Standby e notte",
+          "after": "Standby dopo {time}",
+          "off": "Nessuno standby",
+          "night": "Notte dalle {start} alle {end}"
+        },
+        "navigation": {
+          "title": "Navigazione",
+          "home_after": "Torna a Home dopo {time}"
+        },
+        "board": {
+          "title": "Questa scheda"
+        },
+        "help": {
+          "title": "Aiuto",
+          "feedback": "Feedback"
+        }
+      },
+      "blocks": {
+        "display": "Luminosità e rotazione",
+        "standby": "Standby",
+        "night": "Notte",
+        "navigation": "Navigazione"
       }
     },
     "update": {
@@ -3236,9 +3515,14 @@
       "phases": {
         "install": "Compilazione e installazione…",
         "verify": "In attesa che lo schermo torni online…",
-        "settle": "Verifica della stabilità…"
+        "settle": "Verifica della stabilità…",
+        "ready": "Compilato in anticipo: si installa appena gli schermi precedenti superano il controllo"
       },
-      "new_language": "Nuova lingua: {name}"
+      "new_language": "Nuova lingua: {name}",
+      "restarting": "Si riavvia con il nuovo firmware, torna tra un paio di minuti",
+      "restarting_short": "Aggiornamento",
+      "editor_new": "È pronta una nuova versione dell'editor. Si carica da sola appena hai finito qui.",
+      "editor_reload": "Ricarica ora"
     },
     "settings": {
       "updates": {
@@ -3254,11 +3538,13 @@
         "all": "Aggiorna 1 schermo | Aggiorna tutti i {n} schermi",
         "whats_new": "Novità del firmware {version}",
         "auto_label": "Aggiorna automaticamente ogni notte",
-        "auto_hint": "Tra le 03:00 e le 06:00, uno schermo alla volta. Si ferma in caso di errore e lo segnala in Home Assistant.",
         "reinstall_all": "Reinstalla 1 schermo da dev | Reinstalla tutti i {n} schermi da dev",
         "reinstall_all_hint": "Compila la dev più recente per ogni schermo, uno dopo l'altro, e la installa via Wi-Fi. Su dev il numero di versione resta uguale, quindi una nuova dev non viene mai offerta come aggiornamento.",
         "reinstall_all_confirm": "Reinstallare 1 schermo dalla dev più recente? Si riavvia appena ha il firmware. | Reinstallare {n} schermi dalla dev più recente? Vengono compilati uno dopo l'altro e ognuno si riavvia appena ha il suo firmware.",
-        "reinstall_all_go": "Reinstalla"
+        "reinstall_all_go": "Reinstalla",
+        "auto_hint_hour": "Tra le {from} e le {to}, uno schermo alla volta. Si ferma a un errore e lo segnala in Home Assistant.",
+        "hour_label": "Inizia alle",
+        "plugin_row": "{screen}: {names}"
       },
       "video": {
         "title": "Video in Home Assistant",
@@ -3275,7 +3561,9 @@
         "installed": "Tessera video installata. Riavvia Home Assistant una volta per caricarla.",
         "screens": "Schermi con video: {names}",
         "no_screens": "Nessuno schermo ha ancora il video: aggiungi Fotocamera dello schermo, con la parte Video, a uno schermo P4 con fotocamera.",
-        "writes": "Scrive la cartella {path}; installare di nuovo la sostituisce. Tessera aggiunge da sé ogni schermo con video."
+        "writes": "Scrive la cartella {path}; installare di nuovo la sostituisce. Tessera aggiunge da sé ogni schermo con video.",
+        "no_home_assistant": "Questa app funziona separata da Home Assistant, quindi non può mettere a posto l'integrazione da sola. Scaricala, estrai lo zip nella cartella di configurazione di Home Assistant (dove si trova configuration.yaml) e riavvia Home Assistant.",
+        "download": "Scarica l'integrazione"
       },
       "claude": {
         "installed": "Skill installata. Claude Code la rileva subito.",
@@ -3294,8 +3582,6 @@
       "title": "Tutto ciò che riguarda i tuoi schermi.",
       "back": "← I miei schermi",
       "screens": {
-        "title": "Schermi",
-        "text": "Aggiungi uno schermo, oppure compila e reinstalla il firmware di uno che hai già.",
         "firmware_detail": "Compila e installa via USB o Wi-Fi"
       },
       "language": {
@@ -3380,6 +3666,66 @@
         "forget_confirm": "Dimenticare {name}? Gli schermi tornano a compilarsi qui. Per rimuovere Tessera anche lì, toglilo dai dispositivi abbinati del server di compilazione.",
         "forget_go": "Dimentica",
         "unavailable": "Questo Tessera non può comunicare con un server di compilazione."
+      },
+      "build_files": {
+        "title": "File di compilazione",
+        "intro": "Ogni compilazione del firmware lascia dei file, così la compilazione successiva dello stesso schermo è veloce. I backup di Home Assistant non li includono.",
+        "measuring": "Misurazione…",
+        "total": "{size} in tutto",
+        "folders": "Cartelle di compilazione",
+        "folders_detail": "1 schermo | {count} schermi",
+        "cache": "Cache di compilazione",
+        "tools": "ESP-IDF e download",
+        "clean": "Pulisci le cartelle di compilazione",
+        "cleaning": "Pulizia in corso…",
+        "clean_confirm": "Rimuovere le cartelle di compilazione di tutti gli schermi? Questo libera {size}. La prossima compilazione di ogni schermo compila di nuovo tutto e richiede qualche minuto in più, di più su un Raspberry Pi. Layout, plugin e impostazioni restano come sono.",
+        "clean_all": "Rimuovi anche la cache di compilazione e ESP-IDF",
+        "clean_all_confirm": "Rimuovere tutti i file di compilazione, anche la cache di compilazione e ESP-IDF? Questo libera {size}. La prossima compilazione scarica di nuovo ESP-IDF, circa 1 GB, e compila tutto da capo, il che può richiedere mezz'ora su un Raspberry Pi. Layout, plugin e impostazioni restano come sono.",
+        "clean_go": "Pulisci",
+        "cleaned": "Pulizia fatta: {size} di nuovo liberi.",
+        "cleaned_nothing": "Pulizia fatta.",
+        "busy": "Uno schermo è in compilazione. Puoi pulire quando ha finito.",
+        "auto_label": "Pulisci dopo la compilazione",
+        "auto_hint": "Dalla prossima compilazione in poi, rimuove le cartelle di compilazione quando non si sta più compilando nulla. Fa risparmiare spazio, ma ogni compilazione successiva di uno schermo compila di nuovo tutto e richiede qualche minuto in più.",
+        "auto_on": "Le cartelle di compilazione vengono pulite dopo la compilazione.",
+        "auto_off": "Le cartelle di compilazione restano per compilazioni più veloci.",
+        "offer": "Libera {size}",
+        "not_now": "Non ora",
+        "large": "Le cartelle di compilazione occupano {size}. Pulirle libera la maggior parte dello spazio che occupano le compilazioni."
+      },
+      "parts": {
+        "updates": {
+          "title": "Aggiornamenti",
+          "nightly": "Aggiornato ogni notte",
+          "badge": "1 aggiornamento | {n} aggiornamenti"
+        },
+        "builds": {
+          "title": "Compilazione",
+          "server": "Sul server di compilazione {name}",
+          "server_pending": "Il server di compilazione {name} attende l’approvazione",
+          "no_server": "Compilato in questa app"
+        },
+        "language": {
+          "auto": "{name}, da Home Assistant",
+          "auto_plain": "Da Home Assistant"
+        },
+        "plugins": {
+          "title": "Plugin",
+          "counting_on": "Contato nello store",
+          "counting_off": "Non contato nello store",
+          "asking_on": "Chiede le stelle",
+          "asking_off": "Non chiede mai le stelle"
+        },
+        "home_assistant": {
+          "title": "Home Assistant",
+          "video": "Video {state}",
+          "claude": "Claude {state}",
+          "running": "in funzione",
+          "not_installed": "non installato",
+          "installed": "installato",
+          "update": "aggiornamento pronto",
+          "restart": "riavvio necessario"
+        }
       }
     },
     "firmware": {
@@ -3400,18 +3746,26 @@
       "host": "Indirizzo IP o nome host",
       "download_file": "Scarica {name}",
       "download_how": "Mettilo sullo schermo con {esphome_web} in Chrome o Edge: Connect, scegli la porta USB dello schermo, Install e seleziona questo file. Contiene la tua password Wi-Fi e le chiavi dello schermo: tienilo per te.",
-      "waiting": "in attesa, prima 1 compilazione | in attesa, prima {n} compilazioni"
+      "waiting": "in attesa, prima 1 compilazione | in attesa, prima {n} compilazioni",
+      "kept_title": "Log di compilazione",
+      "kept_note": "Il log di ogni compilazione resta qui, anche dopo un riavvio dell'app. Si conservano i 40 più recenti.",
+      "kept_none": "Nessuna compilazione ancora.",
+      "kept_download": "Scarica",
+      "kept_state": {
+        "success": "Riuscita",
+        "failed": "Non riuscita",
+        "interrupted": "Interrotta, l'app si è riavviata",
+        "running": "In corso",
+        "other": "Terminata",
+        "retry": "Di nuovo, in fondo alla coda"
+      }
     },
     "installer": {
       "board": "Quale schermo hai?",
       "board_title": "{name} · {inch} pollici",
-      "status": {
-        "new": "Nuovo",
-        "experimental": "Sperimentale"
-      },
       "status_hint": {
-        "new": "Nuovo: finora provato su pochi schermi. Facci sapere come va.",
-        "experimental": "Sperimentale: non ancora provato su questo hardware. Facci sapere come va."
+        "new": "Nuovo: funziona su schermi reali, ma non è ancora stato provato a fondo. Facci sapere come va.",
+        "experimental": "Sperimentale: ancora troppo pochi dati da schermi reali per sapere quanto funziona bene. Facci sapere come va."
       },
       "abilities": {
         "camera": "Immagini delle telecamere",
@@ -3443,40 +3797,20 @@
       "orientation_landscape": "In orizzontale",
       "orientation_portrait": "In verticale",
       "name": "Nome",
-      "name_placeholder": "Schermo del soggiorno",
       "device_name": "Nome dispositivo",
-      "name_hint": "Ogni schermo ha il suo profilo con le sue chiavi. Quattro schermi? Ripeti questi passaggi quattro volte con un nome diverso.",
       "name_taken": "Un altro schermo si chiama già così. Home Assistant numererebbe i nomi delle entità di questo e le automazioni punterebbero allo schermo sbagliato.",
       "device_name_hint": "Lettere minuscole, cifre e trattini. Un nome diverso per ogni schermo.",
       "node_taken": "Un altro schermo ha già questo nome dispositivo. Home Assistant non distingue due dispositivi con lo stesso nome.",
       "wifi": {
-        "title": "Wi-Fi",
         "ssid": "Nome Wi-Fi (2,4 GHz)",
         "password": "Password Wi-Fi",
-        "new": "Da compilare una sola volta: Tessera lo salva nel secrets.yaml di ESPHome e gli schermi successivi lo usano automaticamente.",
-        "missing": "Nel tuo secrets.yaml di ESPHome mancano ancora i dati Wi-Fi. Tessera compila solo le righe mancanti.",
         "ready": "Il Wi-Fi viene dal tuo secrets.yaml di ESPHome.",
         "invalid": "Il secrets.yaml nella cartella di ESPHome non è YAML valido. Correggi prima il file; non verrà sovrascritto.",
         "other": "Un’altra rete",
         "other_note": "Ogni schermo viene compilato con questa Wi-Fi; quelli che hai già la prendono al prossimo aggiornamento."
       },
-      "install_via": "Installa tramite",
-      "target": {
-        "usb": "Collega lo schermo con un cavo USB dati alla macchina di Home Assistant; compare qui da solo. È collegato al computer che stai usando? Scegli Da questo computer.",
-        "download": "Scarica il firmware e mettilo sullo schermo dal tuo computer, in Chrome o Edge. Dopo, gli aggiornamenti arrivano via Wi-Fi.",
-        "later": "Il profilo va nella cartella di ESPHome. Puoi installarlo più tardi da Firmware e USB, o da ESPHome Device Builder.",
-        "several": "Più schermi collegati: scegli la porta di questo schermo.",
-        "once": "Una sola volta via USB; dopo, tutto senza fili."
-      },
-      "install": "Installa",
-      "save_profile": "Salva profilo",
       "no_cli": "In questa installazione manca la CLI di ESPHome; puoi solo salvare il profilo.",
       "progress": {
-        "saved": "{file} è nella cartella di ESPHome",
-        "writing": "Scrittura del firmware su {name}…",
-        "building": "Compilazione del firmware…",
-        "ready": "Il firmware per {name} è pronto",
-        "installed": "Il firmware è su {name}",
         "build_failed": "Compilazione non riuscita",
         "install_failed": "Installazione non riuscita",
         "waiting": "In attesa del suo turno…"
@@ -3510,20 +3844,12 @@
         "key": "{bold} qui sotto se Home Assistant chiede una chiave di crittografia.",
         "key_bold": "Incolla la chiave API",
         "actions": "{bold} integrazione ESPHome → Configura → «Allow the device to perform Home Assistant actions». Senza questo, lo schermo vede tutto ma non controlla nulla.",
-        "actions_bold": "Consenti le azioni di HA:",
-        "tiles": "{bold} In Tessera lo schermo compare nell'elenco a sinistra entro una trentina di secondi; fino ad allora è indicato lì come «non ancora in Home Assistant».",
-        "tiles_bold": "Scegli i tuoi riquadri."
+        "actions_bold": "Consenti le azioni di HA:"
       },
       "retry": "Riprova",
-      "another": "Installa un altro schermo",
       "start_over": "Ricomincia",
       "done": "Fatto",
       "key_more": "Mostra la chiave API",
-      "steps": {
-        "board": "Schermo",
-        "setup": "Configura",
-        "install": "Installa"
-      },
       "pick_title": "Quale schermo hai?",
       "pick_intro": "Scegli la tua scheda. Cerca per marca, dimensione o ciò che c’è stampato sopra.",
       "search": "Cerca per marca, dimensione o modello",
@@ -3535,45 +3861,15 @@
       },
       "none_found": "Nessuno schermo corrisponde a “{query}”.",
       "try_virtual": "Ancora nessuno schermo? Prova uno schermo di anteprima",
-      "setup_title": "Rendilo tuo",
-      "install_title": "Come vuoi installarlo?",
-      "next": "Avanti",
-      "advanced": "Avanzate",
-      "ways": {
-        "ha_title": "USB su Home Assistant",
-        "ha_found": "Trovato: {port}",
-        "ha_waiting": "Collega lo schermo al computer su cui gira Home Assistant",
-        "browser_title": "Da questo computer",
-        "browser_detail": "Chrome o Edge, con lo schermo sulla USB di questo computer",
-        "download_title": "Scarica il file",
-        "download_detail": "Installalo tu con ESPHome Web",
-        "later_title": "Più tardi",
-        "later_detail": "Salva solo le impostazioni"
-      },
-      "steps_done": {
-        "prepare": "Preparazione",
-        "build": "Compilazione del firmware",
-        "write": "Scrittura sullo schermo",
-        "restart": "Avvio",
-        "done": "Fatto",
-        "download": "Pronto da scaricare"
-      },
       "elapsed": "{time} trascorsi",
       "show_log": "Mostra dettagli",
       "hide_log": "Nascondi dettagli",
-      "next_title": "E adesso",
       "model": "Che modello è?",
-      "model_hint": "È stampato sul retro della scheda. Si somigliano, ma ognuno richiede il proprio firmware.",
-      "models": "{n} modello | {n} modelli",
       "arrive": {
-        "waiting": "In attesa che {name} compaia sulla tua Wi-Fi...",
-        "seen": "{name} è sulla tua Wi-Fi. Lo sto preparando...",
-        "paired": "{name} è associato a Home Assistant.",
         "missing": "{name} non è ancora sulla tua Wi-Fi",
         "hotspot": "Guarda lo schermo: mostra un hotspot e la sua password. Collegati con il telefono e scegli lì la Wi-Fi giusta. Oppure imposta qui la Wi-Fi giusta e reinstalla.",
         "no_hotspot": "Probabilmente il nome o la password della Wi-Fi sono sbagliati. Imposta qui la Wi-Fi giusta e reinstalla, con lo schermo ancora collegato al cavo.",
-        "change": "Cambia Wi-Fi e reinstalla",
-        "failed": "Tessera non riesce ad aggiungere {name} da solo a Home Assistant. Aggiungilo tu qui sotto."
+        "change": "Cambia Wi-Fi e reinstalla"
       },
       "known": {
         "title": "Questa scheda è già in Home Assistant come {name}",
@@ -3595,11 +3891,111 @@
         "limit_title": "Memoria insufficiente per compilare il firmware",
         "limit": "La memoria è finita, anche con un compilatore alla volta. Ferma qualche componente aggiuntivo per un po' o dai più memoria alla macchina, poi riprova."
       },
-      "pair_yourself": "Aggiungilo tu in Home Assistant",
       "grid": "Griglia",
       "grid_hint": "La griglia proposta è la migliore per questo schermo. Puoi cambiarla, e l’orientamento, più tardi accanto alle pagine nell’editor, senza ricompilare.",
       "grid_best": "Torna alla migliore",
-      "waits_turn": "Ora si sta compilando un altro schermo. Questo aspetta il suo turno e parte da solo subito dopo."
+      "waits_turn": "Ora si sta compilando un altro schermo. Questo aspetta il suo turno e parte da solo subito dopo.",
+      "name_quote": "Un nome non può contenere \" né \\. Scrivi 4 pollici come 4in, per esempio.",
+      "flow": {
+        "back": "Indietro",
+        "step_of": "Passaggio {step} di {steps}",
+        "continue": "Continua",
+        "go_install": "Installa",
+        "go_download": "Crea e scarica",
+        "more_options": "Più opzioni",
+        "fewer_options": "Meno opzioni",
+        "later": "Non hai un cavo a portata di mano? Salvalo e installa più tardi",
+        "download_instead": "Preferisci fare da te? Scarica il file",
+        "pick_lead": "Scegli lo schermo che hai. Ti consigliamo questi: sanno fare tutto e li proviamo ogni giorno.",
+        "more_soon": "Altri in arrivo a breve.",
+        "square": "Quadrato",
+        "wide": "Widescreen",
+        "versions": "{n} versione | {n} versioni",
+        "other_screen": "Ho un altro schermo",
+        "which_is_it": "Quale schermo è?",
+        "status": {
+          "stable": "Collaudato",
+          "new": "Nuovo",
+          "experimental": "Sperimentale"
+        },
+        "model_title": "Quale versione hai?",
+        "model_lead": "Il {name} esiste in {n} versioni. Si assomigliano, ma ognuna ha bisogno del suo software. Sul retro della scheda c'è scritto quale hai.",
+        "choice_lead": "Le schede vendute con questo nome differiscono per un componente. La maggior parte delle persone può lasciare la scelta proposta.",
+        "model_usual": "La più venduta. Non sai quale? Scegli questa.",
+        "name_title": "Come si chiama questo schermo?",
+        "name_lead": "Di solito la stanza in cui verrà appeso.",
+        "name_placeholder": "Cucina",
+        "rooms": "Stanze in Home Assistant",
+        "hang_title": "Come sarà appeso?",
+        "hang_lead": "Puoi cambiarlo più tardi, senza reinstallare.",
+        "tiles_a_page": "{n} riquadro per pagina | {n} riquadri per pagina",
+        "plugins_title": "Questo schermo può fare di più",
+        "plugins_lead": "Con questi plugin il suo hardware può fare di più. Attiva ciò che vuoi usare.",
+        "plugins_later": "Puoi attivarli o disattivarli più tardi nella pagina Plugin.",
+        "wifi_title": "A quale Wi-Fi si collegherà?",
+        "wifi_lead": "Lo schermo ha bisogno di una rete a 2,4 GHz. La inserisci una sola volta: anche ogni schermo successivo la usa.",
+        "wifi_once": "Salvata nelle impostazioni di ESPHome e non più mostrata.",
+        "wifi_ready": "Lo schermo si collega allo stesso Wi-Fi degli altri tuoi dispositivi ESPHome.",
+        "cable_title": "Dove è collegato il cavo?",
+        "cable_lead": "Lo schermo riceve il suo software una sola volta, tramite un cavo USB. Poi tutto passa dal Wi-Fi.",
+        "cable_here": "In questo computer",
+        "cable_here_detail": "Il computer su cui stai leggendo. Funziona in Chrome e Edge.",
+        "cable_ha": "Nel tuo Home Assistant",
+        "cable_ha_detail": "Il dispositivo su cui gira Home Assistant, come un Raspberry Pi o un Home Assistant Green.",
+        "here_title": "Collega il cavo a questo computer",
+        "here_plug": "Collega lo schermo a questo computer con un cavo USB per i dati.",
+        "here_click": "Clicca qui sotto su Installa.",
+        "here_pick": "Il browser chiede quale dispositivo: scegli lo schermo e clicca su Connetti.",
+        "file_title": "Riceverai un file da mettergli sopra",
+        "file_lead": "Questo browser non può scrivere da solo su uno schermo. Tessera crea un file, che metti sullo schermo con ESPHome Web in Chrome o Edge.",
+        "ha_title": "Collega il cavo al tuo Home Assistant",
+        "ha_lead": "Non a questo computer, ma al dispositivo su cui gira Home Assistant. Lo vediamo appena è collegato.",
+        "ha_which": "Qual è lo schermo?",
+        "ha_which_lead": "Al tuo Home Assistant è collegato più di un dispositivo. Scegli lo schermo.",
+        "ha_waiting": "In attesa dello schermo",
+        "ha_waiting_detail": "Collega il cavo. Questo si aggiorna da solo.",
+        "ha_found": "Schermo trovato",
+        "ha_others": "Collegato anche: {n} altro dispositivo | Collegati anche: {n} altri dispositivi",
+        "ha_not_screen": "Probabilmente non è uno schermo, ad esempio una chiavetta Zigbee",
+        "saved_title": "{name} è salvato",
+        "ready_title": "{name} è pronto",
+        "ready_lead": "È acceso, sul tuo Wi-Fi e fa parte di Home Assistant. Ora scegli cosa mostrare.",
+        "ha_ask_title": "Home Assistant ti chiede qualcosa su {name}",
+        "now": {
+          "build": "{name} si sta preparando",
+          "write": "Il software va su {name}",
+          "write_self": "Metti il software su {name}",
+          "wifi": "{name} si sta avviando",
+          "ha": "{name} viene aggiunto a Home Assistant"
+        },
+        "lead": {
+          "build": "Di solito ci vogliono da 5 a 20 minuti, la prima volta di più. Puoi chiudere questa finestra: continua da solo.",
+          "build_browser": "Di solito ci vogliono da 5 a 20 minuti, la prima volta di più. Lascia aperta questa pagina: mette il software sullo schermo appena è pronto.",
+          "write": "Lascia il cavo collegato finché non ha finito.",
+          "write_self": "Scarica il file e mettilo sullo schermo con ESPHome Web. Questa pagina vede lo schermo appena è sul tuo Wi-Fi.",
+          "wifi": "Si avvia e si collega al tuo Wi-Fi. Di solito ci vuole meno di un minuto.",
+          "wifi_calibrate": "Si avvia e si collega al tuo Wi-Fi. Prima ti chiede di toccare alcune croci sullo schermo: così impara dove si trova il tuo dito.",
+          "ha": "Tessera lo aggiunge a ESPHome in Home Assistant e gli permette di controllare la tua casa. Non devi fare nulla."
+        },
+        "steps": {
+          "build": "Creazione del software",
+          "write": "Installazione sullo schermo",
+          "write_self": "Lo metti tu sullo schermo",
+          "wifi": "Avvio e connessione al tuo Wi-Fi",
+          "ha": "Aggiunta a Home Assistant"
+        },
+        "may_close": "puoi chiudere questa finestra",
+        "keep_open": "lascia aperta questa pagina finché non è sullo schermo",
+        "show_log": "Cosa succede esattamente",
+        "to_pages": "Crea le sue pagine",
+        "another": "Aggiungi un altro schermo",
+        "close_follow": "Chiudi, continua da solo",
+        "recap": {
+          "wifi": "Sul tuo Wi-Fi",
+          "ha": "In Home Assistant",
+          "actions": "Può controllare la tua casa"
+        }
+      }
     },
     "alerts": {
       "intro": "Ogni schermo ha l'azione {action}. Mette una scheda sopra tutto, riattiva lo schermo e mantiene la retroilluminazione a luminosità normale finché qualcuno non tocca il pulsante o non scade il timeout. Home Assistant da solo non mostra spiegazioni né menu a tendina per le azioni ESPHome; qui trovi tutto quello che puoi compilare.",
@@ -3859,7 +4255,10 @@
     "mockup": {
       "home": "Casa",
       "unknown": "Sconosciuto",
-      "calendar_free": "Libero"
+      "calendar_free": "Libero",
+      "todo_open": "{x} da fare",
+      "todo_all_done": "Tutto fatto",
+      "todo_more": "+{x} altri"
     },
     "pages": {
       "repaired": "Pagina {page}, tessera «{tile}»: tolto ciò che non andava ({what}).",
@@ -3974,7 +4373,8 @@
       "actions_allowed": "{name} ora può comandare i tuoi dispositivi.",
       "part_page": "La pagina: titolo e navigazione",
       "part_page_hint": "Titolo, pagina iniziale e come ci si arriva",
-      "home_control_hint": "Mette il pulsante Home a sinistra nella barra in alto di questa pagina. Porta alla pagina iniziale."
+      "home_control_hint": "Mette il pulsante Home a sinistra nella barra in alto di questa pagina. Porta alla pagina iniziale.",
+      "place_on_new_page": "In una nuova pagina"
     },
     "feedback": {
       "question": "Il tuo schermo funziona come ti aspetti?",
@@ -4034,7 +4434,6 @@
     },
     "webflash": {
       "target": "Installa da questo browser (Chrome o Edge)",
-      "hint": "Collega lo schermo a questo computer con un cavo USB dati. Tessera compila il firmware, poi questa pagina lo installa sullo schermo, in Chrome o Edge. In seguito gli aggiornamenti passano via Wi-Fi.",
       "firmware_hint": "Collega lo schermo a questo computer con un cavo USB dati. Tessera compila il firmware, poi questa pagina lo installa sullo schermo, in Chrome o Edge. Lo schermo mantiene le impostazioni e la calibrazione del tocco. Così recuperi anche uno schermo che si riavvia di continuo e non va mai online.",
       "go": "Connetti e installa",
       "building": "La compilazione può richiedere 20 minuti o più su un computer di Home Assistant come un Raspberry Pi, soprattutto la prima volta. È normale. Lascia aperta questa scheda e lo schermo collegato: questa pagina installa il firmware appena è pronto.",
@@ -4060,6 +4459,7 @@
         "connect": "La scheda non ha risposto. Tieni premuto il pulsante BOOT sulla scheda mentre scegli la porta, finché l'installazione non inizia, e riprova. Anche scollegare e ricollegare il cavo può aiutare.",
         "wrong_chip": "La scheda collegata ha un chip {found}, ma il firmware di questo schermo è per un {expected}. Collega lo schermo giusto o scegli la sua scheda.",
         "wrong_image": "Il firmware compilato da Tessera è per un {expected}, ma la scheda collegata ha un {found}. Non è stato scritto nulla.",
+        "wrong_revision": "Il firmware creato da Tessera è per le revisioni del chip da {from} a {to}, ma il chip sul cavo è {found}. Non è stato scritto nulla. Ricomincia, così Tessera lo crea per questo chip.",
         "disconnected": "Lo schermo è stato scollegato. Ricollegalo e riprova.",
         "download": "Impossibile recuperare il firmware da Tessera: {error}",
         "failed": "L'installazione non è riuscita: {error}"
@@ -4095,6 +4495,7 @@
       "packet_error": "Il firmware ha rifiutato un pacchetto di anteprima: {message}",
       "stopped": "Anteprima del firmware interrotta: {message}",
       "action_error": "Comando Home Assistant non riuscito: {message}",
+      "stale": "Questa anteprima è più vecchia del firmware: è stata compilata il {date} e da allora il firmware è cambiato, quindi uno schermo può disegnare qualcosa che qui non si vede ancora.",
       "remove": "L’anteprima e il suo layout salvato in questo browser.",
       "save": "Salva anteprima",
       "saved": "Salvato in questo browser",
@@ -4168,7 +4569,9 @@
         "layout_imported": "disposizione importata",
         "changed": "disposizione cambiata",
         "restored": "modifiche non salvate ripristinate",
-        "taken_over": "modifiche dell'altra scheda riprese qui"
+        "taken_over": "modifiche dell'altra scheda riprese qui",
+        "auto_layout": "il layout creato per te",
+        "layoutbot": "modifica di Layoutbot"
       }
     },
     "draft": {
@@ -4222,6 +4625,12 @@
       "donated": "Ho già donato",
       "thanks": "Grazie! Questo messaggio non tornerà più."
     },
+    "funding": {
+      "title": "In cerca di finanziamenti",
+      "body": "Ho un lavoro che paga le bollette, e viene prima di tutto. Tessera continua a crescere e semplicemente non ho il tempo che richiede. Per tenerlo in vita mi servono finanziamenti: per dedicargli il tempo che merita o assumere qualcuno che aiuti. Se puoi aiutare, scrivimi un'email.",
+      "mail": "Scrivimi",
+      "later": "Non ora"
+    },
     "build": {
       "plugins": "Compila con i suoi plugin",
       "install": "Installazione",
@@ -4253,7 +4662,20 @@
           "fetch": "il firmware non è tornato",
           "bundle": "non è stato possibile preparare lo YAML"
         }
-      }
+      },
+      "icons": "Compila con le sue icone",
+      "steps": {
+        "title": "Passi della compilazione",
+        "wait": "Attende il suo turno",
+        "build": "Compila",
+        "send": "La invia allo schermo",
+        "confirm": "Lo schermo conferma",
+        "on": "su {name}",
+        "send_waits": "Attende il turno per l'installazione"
+      },
+      "done": "{screen} è pronto.",
+      "done_confirmed": "{screen} è pronto e dice di eseguire ciò che è stato compilato.",
+      "show_why": "Mostra perché"
     },
     "grid": {
       "title": "Griglia",
@@ -4439,6 +4861,15 @@
         "remove_confirm": "Rimuovere \"{name}\" da Home Assistant?",
         "on": "Attiva",
         "off": "Disattiva"
+      },
+      "alarm": "Allarme",
+      "calls": "Chiamate",
+      "parts": {
+        "automations": "{n} automazione | {n} automazioni",
+        "no_automation": "Ancora nessuna automazione",
+        "alarm_panels": "{n} pannello d'allarme | {n} pannelli d'allarme",
+        "no_alarm": "Nessun pannello d'allarme in Home Assistant",
+        "rings_with": "Squilla con {sound}"
       }
     },
     "doorbell": {
@@ -4551,6 +4982,333 @@
     },
     "drawer": {
       "resize": "Larghezza delle impostazioni: trascina o usa le frecce; doppio clic per ripristinare"
+    },
+    "screen_icons": {
+      "eyebrow": "Icone",
+      "title": "Icone di {name}",
+      "intro": "Ogni schermo porta con sé un insieme fisso di icone. Qui ne aggiungi fino a {room} in più. Le icone fanno parte del firmware, quindi una modifica arriva sullo schermo solo dopo una nuova compilazione.",
+      "count": "{n} di {room} aggiunte",
+      "on_screen": "Su questo schermo",
+      "none_yet": "Ancora nessuna. Scegli tra le icone qui sotto.",
+      "waiting": "1 icona attende una compilazione | {n} icone attendono una compilazione",
+      "leaving": "1 icona sparisce con la prossima compilazione | {n} icone spariscono con la prossima compilazione",
+      "changes": "Compila per portare queste modifiche sullo schermo. Ci vogliono alcuni minuti e lo schermo si riavvia.",
+      "build": "Compila {name}",
+      "building": "Compilazione con queste icone…",
+      "all_up_to_date": "Tutto ciò che hai scelto è sullo schermo.",
+      "everywhere": "Metti su ogni schermo",
+      "everywhere_ask": "Questo sostituisce le icone aggiunte di {n} schermo e lo compila. | Questo sostituisce le icone aggiunte di {n} schermi e li compila uno dopo l'altro. Uno schermo con 4 MB di flash resta com'è.",
+      "everywhere_yes": "Compila {n} schermo | Compila {n} schermi",
+      "everywhere_done": "In attesa di compilazione: {names}",
+      "everywhere_off": "Spenti, quindi non compilati: {names}",
+      "from_ha": "Usate nel tuo Home Assistant",
+      "from_ha_hint": "Icone delle tue entità che questo schermo non può ancora disegnare.",
+      "add_all": "Aggiungi tutte",
+      "all": "Tutte le icone",
+      "search": "Cerca tra tutte le icone",
+      "search_label": "Cerca tra tutte le icone",
+      "nothing": "Nessuna icona ha questo nome.",
+      "fixed": "Già su ogni schermo",
+      "full": "Questo schermo non ha più spazio.",
+      "in_use": "{icon} è su {n} riquadro di questo schermo. Mostrerà la sua icona automatica dopo la prossima compilazione. | {icon} è su {n} riquadri di questo schermo. Mostreranno la loro icona automatica dopo la prossima compilazione.",
+      "remove": "Rimuovi",
+      "own_yaml": "Questo schermo viene compilato dal proprio YAML. Salva questo come {file} accanto a esso, aggiungi la riga qui sotto sotto packages: e compilalo lì.",
+      "loading": "Caricamento delle icone…",
+      "card_title": "Icone",
+      "card_hint": "Aggiungi fino a {room} icone a quelle che questo schermo ha già.",
+      "card_button": "Scegli icone",
+      "card_count": "{n} aggiunte",
+      "card_waiting": "{n} in attesa di compilazione",
+      "card_no_room": "Questa scheda ha 4 MB di flash, senza spazio per altre icone."
+    },
+    "sections": {
+      "untitled": "Sezione",
+      "kind": "Sezione",
+      "choose_tiles": "Scegli prima i riquadri della sezione.",
+      "one_page": "I riquadri di una sezione stanno su una pagina: scegli riquadri di una pagina.",
+      "already_in": "Uno di questi riquadri è già in una sezione. Toglilo prima, o scegli riquadri liberi.",
+      "no_full": "Un riquadro a pagina intera non può stare in una sezione.",
+      "too_tall": "Questi riquadri richiedono più righe di quelle della pagina. Scegline meno o allarga la sezione.",
+      "no_room": "Qui non c'è spazio: altri riquadri o sezioni sono d'intralcio.",
+      "no_room_page": "Nessuno spazio per la sezione a pagina {page}.",
+      "removed": "Sezione rimossa, i suoi riquadri restano al loro posto",
+      "removed_with_tiles": "Sezione rimossa con i suoi riquadri",
+      "resize_columns": "Rendi la sezione più larga o più stretta",
+      "resize_rows": "Rendi la sezione più alta o più bassa",
+      "head_title": "Trascina per spostare la sezione, clicca per le impostazioni",
+      "aria": "Sezione {title}",
+      "rename": "Rinomina la sezione",
+      "title": "Nome",
+      "make": "Crea una sezione",
+      "add": "Aggiungi una sezione",
+      "add_here": "Aggiungi una sezione qui",
+      "library_hint": "Un gruppo di riquadri con un titolo",
+      "make_now": "Crea la sezione",
+      "name_placeholder": "Nome, per esempio Luci",
+      "in_section": "In questa sezione",
+      "update_screen": "Il firmware di questo schermo non disegna ancora le sezioni: mostra gli stessi riquadri senza di esse. Aggiorna lo schermo per vederle.",
+      "head": "Titolo",
+      "no_icon": "Nessuna icona",
+      "summary": "Riepilogo",
+      "summary_none": "Nessuno",
+      "summary_search": "Cerca entità",
+      "summary_none_found": "Nessuna entità trovata",
+      "summary_clear": "Nessun riepilogo",
+      "summary_hint": "Lo stato di un'entità a destra del titolo, come una temperatura o quante luci sono accese.",
+      "size": "Dimensione",
+      "columns": "Colonne",
+      "rows": "Righe",
+      "narrower": "Più stretta",
+      "wider": "Più larga",
+      "lower": "Più bassa",
+      "taller": "Più alta",
+      "size_hint": "Una sezione cresce solo nelle celle vuote. Se diventa troppo stretta per i suoi riquadri, scorrono in ordine di lettura.",
+      "loose_hint": "1 riquadro libero sta accanto a una sezione. I riquadri liberi si leggono meglio in una riga propria sopra le sezioni. | {n} riquadri liberi stanno accanto a una sezione. I riquadri liberi si leggono meglio in una riga propria sopra le sezioni.",
+      "loose_row": "Fanne una riga",
+      "short_grid": "Su una griglia di {rows} righe il titolo di una sezione toglie molto spazio ai suoi riquadri: ognuno è alto circa {with} mm invece di {without} mm. I riquadri fuori dalle sezioni mantengono la loro altezza.",
+      "remove": "Rimuovi sezione",
+      "remove_with_tiles": "Rimuovi sezione e riquadri",
+      "settings": "Impostazioni della sezione",
+      "contrast": "Sfondo a contrasto",
+      "contrast_hint": "Il pannello nel colore opposto della pagina, scuro di giorno e chiaro in modalità scura, perché questa sezione risalti.",
+      "contrast_tiles": "Riquadri anche a contrasto",
+      "contrast_tiles_hint": "L'intera sezione nell'altro aspetto, anche le schede dei riquadri: schede scure su pannello scuro di giorno, chiare in modalità scura."
+    },
+    "auto": {
+      "groups": {
+        "lights": "Luci",
+        "covers": "Tapparelle e finestre",
+        "climate": "Clima",
+        "media": "Media",
+        "security": "Sicurezza",
+        "actions": "Scene",
+        "others": "Dispositivi",
+        "weather": "Meteo",
+        "people": "Chi è in casa",
+        "energy": "Energia",
+        "cameras": "Telecamere",
+        "vacuum": "Aspirapolvere",
+        "todo": "Liste",
+        "calendar": "Calendario"
+      },
+      "home": "Casa",
+      "all_lights": "Tutte le luci",
+      "two_rooms": "{a} e {b}",
+      "room_list": "{list} e {last}",
+      "more_rooms": "{a} e altri {n}",
+      "button": "Layout automatico",
+      "button_title": "Crea pagine dalle tue aree e dai tuoi dispositivi di Home Assistant",
+      "title": "Creare un layout per te",
+      "intro": "Tessera guarda le tue aree e i tuoi dispositivi in Home Assistant e crea pagine per questo schermo: una pagina o sezione per stanza, il meteo, l'allarme, le persone e le telecamere della casa insieme, riquadri più grandi dove lo schermo ha spazio. Puoi annullare e cambiare tutto dopo.",
+      "reading": "Lettura della tua casa…",
+      "failed": "Non è stato possibile leggere la tua casa: {error}",
+      "nothing": "Tessera non ha ancora trovato nulla da mostrare su questo schermo. Assegna un'area ai tuoi dispositivi in Home Assistant o aggiungi riquadri dalla libreria.",
+      "nothing_new": "Tutto ciò che Tessera metterebbe su questo schermo c'è già.",
+      "summary": "{pages} pagina · {tiles} riquadri | {pages} pagine · {tiles} riquadri",
+      "summary_sections": "{n} sezione | {n} sezioni",
+      "from_rooms": "da una stanza | da {n} stanze",
+      "left_out": "Un'altra entità non ha trovato posto su questo schermo; è nella libreria. | Altre {n} entità non hanno trovato posto su questo schermo; sono nella libreria.",
+      "replace": "Sostituire le pagine",
+      "replace_hint": "Lo schermo riceve queste pagine al posto di quelle attuali.",
+      "append": "Aggiungere dopo le pagine attuali",
+      "append_hint": "Le pagine attuali restano, le nuove vengono dopo, con ciò che non è ancora sullo schermo.",
+      "append_full": "Su questo schermo non restano pagine o riquadri liberi. Sostituisci le pagine o fai prima spazio.",
+      "make": "Crea il layout",
+      "made": "Un layout di {pages} pagina è pronto. Annulla lo toglie. | Un layout di {pages} pagine è pronto. Annulla lo toglie.",
+      "offer_title": "Vuoi che crei un primo layout per te?",
+      "offer_text": "Tessera può organizzare questo schermo con le tue aree e i tuoi dispositivi di Home Assistant. Dopo puoi cambiare tutto.",
+      "offer_make": "Crea un primo layout",
+      "offer_empty": "Inizia vuoto"
+    },
+    "layoutbot": {
+      "name": "Layoutbot",
+      "open": "Chiedi a Layoutbot",
+      "close": "Chiudi",
+      "hello": "Ciao! Dimmi cosa deve mostrare questo schermo e ne organizzo le pagine. Cambio solo la disposizione, mai i tuoi dispositivi.",
+      "privacy": "Uso {agent} di Home Assistant. La tua domanda, le pagine dei tuoi schermi e gli id, i nomi e le aree delle tue entità vanno lì.",
+      "model_hint": "Lavoro molto meglio con un modello più grande che con il più economico. In Home Assistant, aggiungi un AI Task per me alla tua integrazione IA, disattiva «Impostazioni del modello consigliate», scegli un modello più grande e selezionalo in cima a questa chat.",
+      "model_link": "Apri le integrazioni",
+      "placeholder": "Crea una pagina con…",
+      "ask": "Chiedi",
+      "send": {
+        "ask": "Lo invio a {which}?",
+        "yes": "Sì, invia",
+        "no": "Non ora",
+        "sending": "Invio…",
+        "sent": "Inviato. Lo schermo lo mostra tra un attimo.",
+        "not_all": "Non tutto è stato inviato.",
+        "failed": "Impossibile inviare a {which}.",
+        "declined": "Non inviato. Salva e invia lo fa quando vuoi.",
+        "to": "Invio a {name}",
+        "not_opened": "non è stato possibile aprire quello schermo",
+        "not_saved": "non è stato salvato",
+        "unsaved": "lo schermo aperto ha modifiche non salvate",
+        "own": "Anche le tue modifiche dall'ultimo salvataggio vengono inviate."
+      },
+      "busy": "Layoutbot sta organizzando le tue pagine",
+      "seconds": "{n} s",
+      "stop": "Ferma",
+      "stopped": "Fermato. Non è cambiato nulla.",
+      "nothing": "Non è cambiato nulla.",
+      "stale": "Le pagine sono cambiate mentre pensavo, quindi le ho lasciate come sono. Chiedimelo di nuovo.",
+      "show": "Mostra",
+      "undo": "Annulla",
+      "undone": "Annullato",
+      "restructure": {
+        "page": "Ristruttura questa pagina",
+        "screen": "Ristruttura l'intero schermo"
+      },
+      "suggest": {
+        "lights_sections": "Metti tutte le luci su una pagina, con una sezione per stanza",
+        "lights": "Metti tutte le luci su una pagina",
+        "covers_sections": "Una pagina con tutte le tapparelle e le tende, in due sezioni",
+        "covers": "Una pagina con tutte le tapparelle e le tende",
+        "media": "Una pagina musica con tutti gli altoparlanti",
+        "climate": "Una pagina clima con il riscaldamento e le temperature"
+      },
+      "what": {
+        "pages": "1 nuova pagina | {n} nuove pagine",
+        "added": "1 riquadro aggiunto | {n} riquadri aggiunti",
+        "removed": "1 riquadro tolto | {n} riquadri tolti",
+        "changed": "pagina {pages} cambiata | pagine {pages} cambiate"
+      },
+      "connect": {
+        "title": "Collega un'IA in Home Assistant",
+        "short": "Non ancora collegato",
+        "body": "Organizzo le pagine di questo schermo a partire da una frase, come «tutte le luci su una pagina, una sezione per stanza». Per farlo uso l'IA che colleghi a Home Assistant: aggiungi una di queste integrazioni e al resto penso io.",
+        "cloud": "Nel cloud, con la tua chiave",
+        "local": "Sul tuo computer",
+        "after": "Va bene qualsiasi integrazione IA con AI Tasks. Una volta aggiunta, controlla di nuovo qui.",
+        "again": "Controlla di nuovo"
+      },
+      "notes": {
+        "page_full": "La pagina {page} è piena, quindi {count} riquadro è stato tralasciato. | La pagina {page} è piena, quindi {count} riquadri sono stati tralasciati.",
+        "memory_full": "La memoria dello schermo è piena, quindi {count} riquadro è stato tralasciato. | La memoria dello schermo è piena, quindi {count} riquadri sono stati tralasciati.",
+        "left_out": "Lo schermo non aveva spazio per {count} altro riquadro. | Lo schermo non aveva spazio per altri {count} riquadri.",
+        "no_page": "Non esiste la pagina {page}.",
+        "not_drawn": "Lo schermo non disegna alcun riquadro per {count} entità. | Lo schermo non disegna alcun riquadro per {count} entità.",
+        "restructure_no_room": "Ristrutturando non ci sarebbe spazio per {count} dei tuoi riquadri, quindi ho lasciato le pagine come erano. | Ristrutturando non ci sarebbe spazio per {count} dei tuoi riquadri, quindi ho lasciato le pagine come erano."
+      },
+      "update_app": "Aggiorna l'app Tessera: questo editor colloca da sé i piani di Layoutbot.",
+      "scope": {
+        "here": "Questo schermo",
+        "all": "Tutti gli schermi"
+      },
+      "preview": "Guarda"
+    },
+    "alarm": {
+      "hero_title": "Quando scatta l'allarme",
+      "hero_text": "Qualcuno entra o scatta l'allarme: i tuoi schermi si risvegliano da soli e aprono il tastierino in rosso, con il tempo rimasto. Digita il codice e l'allarme si spegne. Non serve alcuna automazione; Tessera segue il tuo allarme in Home Assistant.",
+      "none": "Home Assistant non ha alcun pannello di allarme. Aggiungine uno, come Manual alarm o Alarmo, e comparirà qui.",
+      "no_code": "Questo allarme non chiede un codice per essere disattivato, quindi gli schermi aprono la sua scheda con un tasto Disattiva invece del tastierino.",
+      "screens_label": "Schermi che aprono il tastierino",
+      "every_screen": "Tutti gli schermi",
+      "every_screen_hint": "Anche uno schermo aggiunto in seguito. Disattivalo per scegliere tu gli schermi.",
+      "none_chosen": "Nessuno schermo apre il tastierino da solo. Il riquadro dell'allarme lo apre comunque con un tocco.",
+      "older": "Serve un aggiornamento del firmware per aprirlo senza il riquadro dell'allarme su una pagina.",
+      "send_label": "Invia il codice dopo",
+      "send_off": "Tasto OK",
+      "send_off_hint": "Il codice parte quando tocchi OK. Home Assistant non dice quante cifre ha un codice.",
+      "send_on_hint": "Il codice parte da solo dopo {digits} cifre, senza OK. Sceglilo solo se tutti i codici di questo allarme hanno {digits} cifre: un codice inviato troppo presto conta come errato.",
+      "saved": "Salvato. I tuoi schermi lo avranno tra un attimo.",
+      "how_title": "Come funziona sullo schermo",
+      "how_wake": "Quando l'allarme fa il conto alla rovescia perché qualcuno è entrato, o scatta, gli schermi scelti si risvegliano e aprono il tastierino. Durante il conto alla rovescia prima dell'inserimento, la scheda dell'allarme mostra invece un tasto Disattiva.",
+      "how_keys": "I tasti occupano tutto lo spazio dello schermo, fino alle dimensioni del tastierino di un telefono grande. Cancella toglie l'ultima cifra.",
+      "how_wrong": "Tre codici errati bloccano il tastierino per 30 secondi, e ogni codice errato successivo raddoppia il tempo, fino a 15 minuti. Home Assistant viene a sapere di ciascuno con l'evento esphome.screen_alarm_code_refused, mai con il codice.",
+      "how_code": "Il codice va a Home Assistant con l'azione, come lo invia la sua scheda di allarme, e viene cancellato subito sullo schermo. Uno schermo non lo salva né lo registra mai.",
+      "how_tile": "Metti l'allarme anche su una pagina: un tocco sul suo riquadro apre in qualsiasi momento la scheda con un tasto per modalità."
+    },
+    "calls": {
+      "hero_title": "Chiamate",
+      "hero_text": "Quando uno schermo ne chiama un altro, lo schermo chiamato suona. Scegli qui sotto con cosa suona: una suoneria ha la sua pausa e si ripete finché qualcuno risponde. Una nuova scelta arriva allo schermo con il suo prossimo squillo, senza bisogno di aggiornare."
+    },
+    "sounds": {
+      "kinds": {
+        "call": {
+          "title": "Suoneria",
+          "text": "Ciò che suona su uno schermo quando un altro schermo lo chiama."
+        },
+        "doorbell": {
+          "title": "Campanello",
+          "text": "Ciò che uno schermo riproduce quando suona il campanello, sugli schermi che aprono il campanello e sugli altri con il suo avviso."
+        },
+        "alert": {
+          "title": "Suono di avviso",
+          "text": "Ciò che uno schermo riproduce quando compare un tuo avviso, inviato con l'evento esp_screens_show_alert. Nessun suono è come prima. Un avviso può restare silenzioso con sound: false."
+        }
+      },
+      "builtin": {
+        "classic": "Classico",
+        "marimba": "Marimba",
+        "digital": "Digitale",
+        "bell": "Campana",
+        "chime": "Din-don",
+        "notice": "Notifica"
+      },
+      "none": "Nessun suono",
+      "play": "Riproduci",
+      "stop": "Ferma",
+      "seconds": "{seconds} s",
+      "chosen": "Suono scelto",
+      "saved": "Suono salvato",
+      "removed": "Suono rimosso",
+      "own_add": "Aggiungi un suono tuo",
+      "own_choose": "Scegli un file audio",
+      "own_unreadable": "Non è stato possibile leggere questo file come suono.",
+      "own_full": "Ci sono già {most} suoni tuoi. Rimuovine prima uno.",
+      "own_drag_loop": "Trascina la parte, o uno dei suoi bordi, qui o nel file intero qui sopra; anche i tasti freccia la spostano. Riproduci (o la barra spaziatrice) la ripete in ciclo come farà lo schermo.",
+      "own_drag_once": "Trascina la parte, o uno dei suoi bordi, qui o nel file intero qui sopra; anche i tasti freccia la spostano. Riproduci (o la barra spaziatrice) la riproduce come farà lo schermo.",
+      "own_name": "Nome",
+      "own_save": "Salva suono",
+      "screens_title": "Per schermo",
+      "screens_same": "Uguale a ogni schermo",
+      "screens_none": "Nessuno schermo che può riprodurlo ha ancora un altoparlante.",
+      "volume": "Volume",
+      "volume_db": "{volume} dB",
+      "volume_saved": "Volume impostato a {volume} dB",
+      "test": "Prova",
+      "test_hint": "Lo riproduce ora su questo schermo, come suonerà davvero",
+      "test_sent": "Riproduzione sullo schermo",
+      "editor": {
+        "drop": "Trascina qui un file audio",
+        "drop_loop": "Va bene qualsiasi brano o suono: scegli la parte che suona, al massimo {seconds} secondi, con la pausa che vuoi prima che suoni di nuovo.",
+        "drop_once": "Va bene qualsiasi brano o suono: scegli la parte che viene riprodotta, al massimo {seconds} secondi.",
+        "total": "{time} in tutto",
+        "other_file": "Un altro file",
+        "whole": "Il file intero",
+        "part": "La parte riprodotta",
+        "start": "Inizio",
+        "end": "Fine",
+        "of_most": "di al massimo {most} s",
+        "made": "Cosa si fa al suono",
+        "no_bass": "Senza bassi",
+        "soft_ends": "Bordi morbidi",
+        "even_level": "Volume uniforme",
+        "repeats": "Si ripete"
+      }
+    },
+    "updates_card": {
+      "title": "{n} aggiornamento per {screen} | {n} aggiornamenti per {screen}",
+      "one": "Una compilazione di {screen}.",
+      "one_build": "Tutto in una compilazione di {screen}.",
+      "firmware": "Firmware",
+      "away": "{screen} è offline. Si potrà aggiornare quando torna.",
+      "go_all": "Aggiorna tutto"
+    },
+    "build_room": {
+      "title": "Questo Home Assistant potrebbe non avere memoria a sufficienza per compilare",
+      "text": "Ha {free} GB liberi e una compilazione richiede circa {need} GB. Può fallire o rallentare Home Assistant. Un server di compilazione su un altro computer lo evita, come anche aggiornare lo schermo da ESPHome Device Builder su un computer.",
+      "server": "Server di compilazione"
+    },
+    "history": {
+      "title": "Ultima compilazione di questo schermo | Ultime {n} compilazioni di questo schermo",
+      "by": {
+        "update": "Aggiornamento",
+        "plugins": "Plugin",
+        "install": "Installazione",
+        "icons": "Icone",
+        "other": "Compilazione"
+      }
     }
   }
 }

@@ -8,6 +8,7 @@
 #include "picture_loader.h"
 #include "tile_picture.h"
 #include "lvgl.h"
+#include "theme.h"
 namespace esphome::camera { class Camera; }
 #include "roomy.h"
 
@@ -27,6 +28,10 @@ bool known(const runtime_tiles::Tile &t);
 void render(runtime_tiles::Widgets &w, const runtime_tiles::Tile &t, int width, int height);
 // The card shows something else, or goes: its plugin tile goes with it.
 void release(runtime_tiles::Widgets &w);
+// The colour the plugin tile on this card gave its card (plugin API 0.26, ui::set_card_color): a swatch, an
+// instrument's face, or the card (none given). The palette of the card takes it over the tile's own background
+// (runtime_tiles::card_face).
+theme::Face face(const runtime_tiles::Widgets &w);
 // A tap on a plugin tile's card, with the finger's place on the glass (-1,-1 unknown): the tile reads it in its own
 // pixels through tessera::tap_point().
 void tap(runtime_tiles::Widgets &w, int x, int y);
@@ -91,6 +96,8 @@ bool saver_backdrop(const std::string &key);
 void saver_show(lv_obj_t *root, const std::string &key, const roomy::Text &data, int level, bool night);
 void saver_state(const roomy::Text &data);
 void saver_refresh();
+// How many parts' turns (ui::rotate) the host keeps: a test hook, so the host probe proves a deleted part leaves none.
+size_t turns_kept();
 void saver_hide();
 // Its pictures, as a card's: what it wants this round, the app's answer ("psaver"), and whether a number is its question's.
 void saver_picture_want();
@@ -108,6 +115,7 @@ void hello(JsonObject root);
 
 // What the core does for a plugin that only the YAML can do. tessera::wake (plugin API 0.16): the screen wakes as Home
 // Assistant's Wake button does, through the one way every wake that is not a finger takes (packages/core.yaml, the script
-// wake_from); `source` names the plugin in the log.
-inline void (*wake)(const std::string &source) = nullptr;
+// wake_from); `source` names the plugin in the log. `sensed`: the plugin's own wake, someone sensed, which waits for
+// the quiet after a standby by hand (screen_standby.h, firmware 0.64.0+); a call, a doorbell or a popup is not.
+inline void (*wake)(const std::string &source, bool sensed) = nullptr;
 }  // namespace plugin_host

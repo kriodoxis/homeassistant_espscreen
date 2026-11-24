@@ -1,4 +1,4 @@
-# Kept pages, prepared pages and kept pictures (firmware 0.3.2)
+# Kept pages, prepared pages and kept pictures
 
 A screen with PSRAM keeps the cards of every page it has built, builds every page before the first one opens, and keeps
 the pictures its cards draw until they change. A page switch then hides one set of cards and shows another: on the
@@ -34,6 +34,16 @@ Three rules keep this safe:
   sun, graphs, a playing track, "5 min ago"). Every kept set remembers the number it was drawn up to, and a card is
   drawn again when it comes back only when its tile took a later number. A drawing that was asked for before a page was
   built, and ran after, is then no change that page lacks; the flags this replaced got that wrong.
+- **A card that comes back is painted for what it shows now.** A card skips its paint when nothing it is painted for
+  changed: whether it is on, available and lit, its card's look, and the state's colour itself (a thermostat from Auto
+  to Heat stays on and changes only its colour; a lamp that changes its colour stays on). A kept card keeps that memory
+  while its page is away, so the colour is part of it (GitHub #349, web/wasm/test_kept_colour.mjs, which keeps pages in
+  the preview as a board with PSRAM does).
+
+A page's sections (docs/PAGES.md "Sections") are drawn once, when the page is first placed on the glass or prepared off
+it, and kept: their panels, titles and icons are hidden while another page is on the glass and shown with their page, so
+a page switch stays a switch. They are made again when what they show changes, and a new layout or grid lets them go
+(`module_sections.h`).
 
 A layout change forgets every kept page (`forget_kept`); the sets stay and are reused for the next pages, and their
 pictures go with what they showed, and so do the cards' own drawings (their custom parts, their points, a calendar's
@@ -82,14 +92,30 @@ the budget for the rest is a fifth of the PSRAM, at most 6 MB (about 1.2 MB on a
 
 - **No download starts between two quick page turns** (`camera_view::SETTLE_MS`, 800 ms after the last turn), so a
   picture never lands in the middle of someone paging through.
-- **Pictures that do not refresh are fetched ahead** while the screen is in use and the store is under three quarters
-  of its budget, for the cards on kept pages (a cover, a favourite, a map), after everything on the glass and broken off
-  for it (`card_picture_wants`, docs/CAMERA.md "One route for every picture"). A camera on a kept page loads when its
-  page comes back, showing its last picture meanwhile.
+- **Pictures that do not refresh are fetched ahead** while the screen is in use, for the cards on kept pages (a cover, a
+  favourite, a map, a robot's map), after everything on the glass and broken off for it (`card_picture_wants`,
+  docs/CAMERA.md "One route for every picture"). A camera on a kept page loads when its page comes back, showing its last
+  picture meanwhile.
+- **A picture out of sight uses spare room and nothing else** (GitHub #415). One fetched ahead is asked for and loaded
+  only when the store, with it in, stays at or under three quarters of its budget (`picture_store` `ahead_level`,
+  `fits_ahead`, asked per picture by the loader's `room_ahead` with its size from `bytes_of`), and one that arrives
+  when that room is gone is not kept. So a picture fetched ahead never makes another picture go; one that does not fit
+  loads when its page comes back. Before, two large pictures on two kept pages took turns every second or two
+  (tests/test_pictures_ahead.cpp).
 - **Over the budget, a page out of sight makes way.** What the glass shows is never freed. When every picture is on
   some card and the store is over its budget, the picture used longest ago that only a kept page draws goes
   (`picture_away`, `picture_let_go`): its card lets go of it and asks for it again when its page comes back. Every page
   can be kept that way without its pictures filling the PSRAM.
+
+## Nothing past LVGL at a turn
+
+A turn is drawn by LVGL alone: the kept cards are exchanged and LVGL draws the page. From November 2026 to the next
+release a P4 board also kept a picture of each page in PSRAM, copied from the frame buffer while the page rested and put
+back on the glass at a turn, past LVGL. It was taken out again: reading the frame buffer past the processor's cache
+threw away what LVGL had just drawn in those rows, so a card that opened or a change of Dark mode reached the glass only
+in part (docs/open-issues/dark-mode-half-switched.md), and the page was drawn whole by LVGL after the put anyway. Its two
+megabytes a page also left the covers and cameras short of memory. What writes the glass past LVGL now is a live
+picture in its own room, which LVGL keeps out of, and the veil of an overlay (docs/MOTION.md).
 
 ## Never walk the PSRAM heap while the glass is lit
 

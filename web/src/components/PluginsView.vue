@@ -31,11 +31,12 @@ const builds = useBuildsStore();
 const plugins = usePluginsStore();
 
 plugins.loadPlugins();
-// Three tabs by what a plugin adds (read from its manifest), so a countdown is never found among a board's audio parts,
-// and what is on a screen now; under them the topics its makers gave, as chips; a search looks through every tab.
-const TABS = [...PLUGIN_TYPES, "in_use"] as const;
+// All of them first, so the store opens on everything it has; then a tab for each kind of plugin by what it adds (read
+// from its manifest), so a countdown is never found among a board's audio parts, and what is on a screen now; under them
+// the topics its makers gave, as chips; a search looks through every tab.
+const TABS = ["all", ...PLUGIN_TYPES, "in_use"] as const;
 type Tab = (typeof TABS)[number];
-const tab = ref<Tab>("tiles");
+const tab = ref<Tab>("all");
 const chosenTopics = ref<string[]>([]);
 // Most liked first by default; or the best rated, the most used, the newest, or by name. Tessera's recommendation
 // (featured.yaml) breaks a tie. A plugin with too few ratings for an average goes after those with one.
@@ -55,7 +56,7 @@ const fittingOnly = ref(true);
 const query = ref("");
 const everything = computed(() => [...plugins.index, ...plugins.allTests()]);
 const inUse = (plugin: Plugin) => plugins.realScreens().some((screen) => plugins.installedOn(screen, plugin.id));
-const inTab = (plugin: Plugin, key: Tab) => (key === "in_use" ? inUse(plugin) : (plugin.type || "functions") === key);
+const inTab = (plugin: Plugin, key: Tab) => (key === "all" ? true : key === "in_use" ? inUse(plugin) : (plugin.type || "functions") === key);
 const matches = (plugin: Plugin) => {
   const words = queryWords(query.value);
   const topics = (plugin.topics || []).map((name) => t(`editor.plugins.topics.${name}`)).join(" ");
@@ -104,6 +105,9 @@ const open = computed(() => everything.value.find((plugin) => plugin.id === open
 // The tray folds to its head while details are open, and opens again when they close.
 function show(plugin: Plugin) { openId.value = plugin.id; panel.value = "plugin"; plugins.tray.open = false; }
 function close() { panel.value = null; openId.value = null; plugins.tray.open = true; }
+// A plugin that left the list while its details were open (Remove, a test folder that went) closes them: the details are
+// gone before their own close could reach this page, which left an empty column.
+watch(open, (plugin) => { if (panel.value === "plugin" && !plugin) close(); });
 // ⌘K sends a person to a plugin: its details open once the page has it (the screen's Plugins tab does the same).
 watch(() => [plugins.focus, everything.value.length] as const, ([id]) => {
   const plugin = id ? everything.value.find((p) => p.id === id) : null;

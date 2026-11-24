@@ -1,5 +1,11 @@
 # Installation and everyday use
 
+## LOOKING FOR FUNDING
+
+I have a day job that pays the bills, and it comes first. Tessera keeps getting bigger, and I simply don't have the time it needs. To keep it alive, I need funding: so I can give it the time it deserves, or hire someone to help. If you can help, [send me an email](mailto:maxgramser@gmail.com?subject=Funding%20for%20Tessera).
+
+Max, maker of Tessera
+
 Tessera is the new name for ESP Screens; the app and your screens are the same. The [quick start](https://tessera-maxgramser.on-forge.com/docs/quick-start) and [the manual](https://tessera-maxgramser.on-forge.com/docs/) are on the Tessera website, with [the screens that work](https://tessera-maxgramser.on-forge.com/screens).
 
 Looking for e-ink? Tessera is for colour LCD touch screens. [Tesserae (tesserae.ink)](https://tesserae.ink) is a separate open-source project with a similar name, for calm dashboards on e-ink panels.
@@ -52,3 +58,6 @@ In Home Assistant every screen also has a **Wake** and a **Sleep** button (firmw
 newer). Press them from an automation with `button.press`: Wake lights the screen up and restarts the
 standby time, Sleep puts the screen in standby right away, also with Auto standby off. Wake is not a
 touch, so an open card or a later page still goes back to page 1 on time (firmware 0.2.56 or newer).
+An automation that runs on motion presses **Motion** instead (firmware 0.64.0 or newer): it wakes the
+same way, but right after someone sent the screen to standby by hand it waits until a minute passed
+without a press, so walking away does not light the screen again.

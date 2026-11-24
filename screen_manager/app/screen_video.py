@@ -12,13 +12,16 @@ screen_camera). Home Assistant shows it through the custom integration in ha_int
 
 Nothing reaches Home Assistant before the person asked: without the folder there, sync does nothing.
 """
+import io
 import json
 import logging
 import os
 import time
+import zipfile
 from pathlib import Path
 
 import atomic
+import core
 from i18n import t
 
 LOG = logging.getLogger('screen_manager')
@@ -42,24 +45,48 @@ def files():
             for path in sorted(SOURCE.rglob('*')) if path.is_file() and '__pycache__' not in path.parts}
 
 
+def home_assistant_folder(directory):
+    """Whether the folder the integration goes into (<configuration>/custom_components/tessera_video) lies in a Home
+    Assistant configuration (core.home_assistant_config, GitHub #357)."""
+    return core.home_assistant_config(Path(directory).parent.parent)
+
+
+def archive():
+    """The integration as a zip that unpacks in Home Assistant's configuration folder (custom_components/tessera_video),
+    for an app that cannot write there itself (GitHub #357); writes nothing."""
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as bundle:
+        for name, data in files().items():
+            entry = zipfile.ZipInfo(f'custom_components/{DOMAIN}/{name}', date_time=(2026, 1, 1, 0, 0, 0))
+            entry.compress_type = zipfile.ZIP_DEFLATED
+            entry.external_attr = 0o644 << 16
+            bundle.writestr(entry, data)
+    return buffer.getvalue()
+
+
 def version():
     return json.loads((SOURCE / 'manifest.json').read_text(encoding='utf8'))['version']
 
 
 def status(directory):
-    """Whether the integration is there and equal to what this app version writes."""
+    """Whether the integration is there and equal to what this app version writes, and whether this app can write it into
+    a Home Assistant configuration at all (`home_assistant`: False for an app in Docker on its own, which offers the zip)."""
+    reachable = home_assistant_folder(directory)
     if not (directory / 'manifest.json').is_file():
-        return {'installed': False, 'current': False, 'path': str(directory), 'version': version()}
+        return {'installed': False, 'current': False, 'path': str(directory), 'version': version(), 'home_assistant': reachable}
     try:
         current = all((directory / name).read_bytes() == data for name, data in files().items())
     except OSError:
         current = False
-    return {'installed': True, 'current': current, 'path': str(directory), 'version': version()}
+    return {'installed': True, 'current': current, 'path': str(directory), 'version': version(), 'home_assistant': reachable}
 
 
 def install(directory):
     """Write the integration, replacing an older copy, each file whole or not at all. Home Assistant loads a new or
-    changed custom integration only at its next start: the editor then offers to restart it."""
+    changed custom integration only at its next start: the editor then offers to restart it. Only into a Home Assistant
+    configuration: anywhere else nothing is written, and the editor offers the zip instead (GitHub #357)."""
+    if not home_assistant_folder(directory):
+        raise ValueError(t('addon.errors.video.no_home_assistant', folder=Path(directory).parent.parent))
     try:
         for name, data in files().items():
             atomic.write_text(directory / name, data.decode('utf-8'), mode=0o644)
@@ -116,16 +143,31 @@ class Videos:
             return {'added': [], 'removed': []}
         entries = [e for e in await ha.request('config_entries/get', domain=DOMAIN) or [] if isinstance(e, dict)]
         self.entries = len(entries)
-        # Which screen an entry is for: Home Assistant's list of entries leaves their unique id out, so the device
-        # registry says it, through the camera the entry put on the screen's device. An entry on no device yet (its
-        # screen's ESPHome device is not there) is left alone, and the flow below says it is there already.
+        # Which screen an entry is for: Home Assistant's list of entries leaves their unique id out, so the entity
+        # registry says it, through the camera the entry made, which sits on the screen's device. Never through the
+        # entries a device holds: from Home Assistant 2026.11 a device belongs to one entry, the ESPHome one. An entry
+        # whose camera is not on a device yet is left alone, and the flow below says it is there already.
         ours = {e.get('entry_id'): e for e in entries}
         have = {}
-        for device in getattr(ha, 'devices', None) or []:
-            for entry_id in (device or {}).get('config_entries') or []:
-                if entry_id in ours:
-                    have[device.get('id')] = ours[entry_id]
+        for entity in getattr(ha, 'registry', None) or []:
+            if isinstance(entity, dict) and entity.get('platform') == DOMAIN and entity.get('config_entry_id') in ours \
+                    and entity.get('device_id'):
+                have[entity['device_id']] = ours[entity['config_entry_id']]
+        # An entry that waits for its screen goes: the integration says so itself (ConfigEntryNotReady, state
+        # setup_retry) when the screen's ESPHome device is gone, because the screen was removed from Home Assistant or
+        # added again, which makes another device with another key (a Guition 10.1, 2026-11-16: its video said "wrong
+        # user/pass" until the entry was made again). The screen's device of today gets its entry below, in the same
+        # look. What Home Assistant says of the entry decides, never a guess from the registries: such a guess took a
+        # good entry away on Home Assistant 2026.11.
+        orphans = [(next((device for device, entry in have.items() if entry is e), None), e)
+                   for e in entries if e.get('state') == 'setup_retry']
+        have = {device: entry for device, entry in have.items() if entry.get('state') != 'setup_retry'}
         added, removed, now = [], [], time.monotonic()
+        for device, entry in orphans:
+            if entry.get('entry_id'):
+                await ha.delete_config_entry(entry['entry_id'])
+                removed.append(device or entry['entry_id'])
+                LOG.info('%s: its video left Home Assistant (it waited for a screen that is not there any more)', entry.get('title') or device)
         for device, name in wanted.items():
             if device in have or now < self.tried.get(device, 0):
                 continue

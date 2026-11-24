@@ -5,7 +5,8 @@ TypeScript: ui::px and the look (ui_scale.h) in web/src/model/ui-scale.ts, the -
 (runtime_tiles panel_metrics, stepper_keys, climate_tile::bar_room) there too, the top bar (header_bar.h and the look's
 fonts) in topbar.ts, a tile's size (page_protocol.h, core.py) in sizes.ts, a card's colour (Tile::active,
 tile_controls::accent) in tile-palette.ts, a thermostat's modes (tile_controls::climate_bar_keys) in tall-controls.ts, and
-a cover card's layout and its slats (cover_tile.h) in cover-tile.ts, the words a card writes where the firmware has a rule for them (tile_controls::temperature_text, humidity_text,
+a cover card's layout and its slats (cover_tile.h) in cover-tile.ts, a sensor's graph on a card (render_graph, smooth(),
+graph_side, theme::fill_opacity()) in history-preview.ts, the words a card writes where the firmware has a rule for them (tile_controls::temperature_text, humidity_text,
 reading_text, status_text, binary_state_text) in tile-text.ts.
 The editor does not read these numbers from the firmware; this test keeps the two the same, the way
 tests/test_alert_layout.py does for the alert: it compiles the C++ (the real headers, and the few lines of
@@ -31,12 +32,13 @@ sys.path.insert(0, str(ROOT / 'tools'))
 sys.path.insert(0, str(ROOT / 'screen_manager/app'))
 import core  # noqa: E402
 import profiles  # noqa: E402
+from firmware_sources import runtime_source  # noqa: E402
 
 WEB = ROOT / 'web'
 VITE_NODE = WEB / 'node_modules/.bin/vite-node'
 WASM = WEB / 'src/wasm/firmware_preview.wasm'
 # A tile's panel is compiled on its own (tile_panel.cpp): read with the header, as it was part of it.
-TILES = (ROOT / 'components/smart_display/runtime_tiles.h').read_text() + (ROOT / 'components/smart_display/tile_panel.cpp').read_text()
+TILES = runtime_source() + (ROOT / 'components/smart_display/tile_panel.cpp').read_text()
 
 
 def need(found, what):
@@ -140,6 +142,8 @@ import {{ climateLayout, tallAction, tallLayout }} from "{model / 'tall-layout'}
 import {{ mediaLayout }} from "{model / 'media-layout'}";
 import {{ vacuumLayout, vacuumMetrics }} from "{model / 'vacuum-tile'}";
 import {{ hsRgb, kelvinRgb, levelShown, luminosity, presetSizes, row as presetRow, shows }} from "{model / 'light-presets'}";
+import {{ insideMargins, sectionMetrics }} from "{model / 'sections'}";
+import {{ cardPoints, GRAPH_FILL, GRAPH_SIDE }} from "{model / 'history-preview'}";
 const DATA = JSON.parse(readFileSync("{Path(tmp) / 'data.json'}", "utf8"));
 {body}
 ''')
@@ -336,6 +340,78 @@ console.log(JSON.stringify(DATA.shapes.map((shape: any) => ({
                 self.assertNotEqual(ts['full'], ts['px'][1 if big else 0], f'{key} is fixed: take it out of Grid.KNOWN')
                 continue
             self.assertEqual(ts['full'], ts['px'][1 if big else 0], f'{key}: the full card keys are panel_metrics_full({big})')
+
+
+class Sections(unittest.TestCase):
+    """The room a section takes from the tiles in it (docs/PAGES.md "Sections"): the firmware works its header out from
+    its fonts as it runs (module_sections.h header, title_top, inset), tools/generate_board_shapes.py works the same out
+    with Pillow for boards.json, and the editor draws from that (model/sections.ts sectionMetrics, insideMargins). Here
+    the firmware preview lays a card out in a section on every board shape that draws sections, and the editor's
+    numbers must put the card on the same pixels."""
+
+    @classmethod
+    def setUpClass(cls):
+        need(shutil.which('node'), 'node')
+        need(WASM if WASM.exists() else None, 'web/src/wasm/firmware_preview.wasm')
+        cls.shapes = [(key, board, shape) for key, board, shape in SHAPES
+                      if 'sections' in core.SHAPES[board].get('modules', ()) and shape['columns'] >= 2]
+        tile = [{'entity': 'switch.parity', 'name': 'Lamp', 'state': 'on', 'a': {}, 'slot': 0,
+                 'o': core.screen_options({'entity': 'switch.parity', 'options': {}}, {}, 'on') or {}}]
+        screens = []
+        for key, _, shape in cls.shapes:
+            # The same card loose, in a section of one row, and in the first row of a section of two.
+            layouts = [{'key': 'loose', 'tiles': tile}, {'key': 'rows1', 'tiles': tile, 'sections': [[0, 0, 2, 1, '', 'Lights', '', 0]]}]
+            if shape['rows'] >= 2:
+                layouts.append({'key': 'rows2', 'tiles': tile, 'sections': [[0, 0, 2, 2, '', 'Lights', '', 0]]})
+            screens.append({'key': key, 'width': shape['width'], 'height': shape['height'], 'columns': shape['columns'],
+                            'rows': shape['rows'], 'dpi': shape['dpi'], 'layouts': layouts})
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'screens.json'
+            path.write_text(json.dumps(screens))
+            out = subprocess.run(['node', str(WEB / 'wasm/layout_audit.mjs'), str(path)], check=True, capture_output=True, text=True).stdout
+        cls.cards = {}
+        for report in json.loads(out):
+            if 'error' in report:
+                raise AssertionError(f"{report['screen']}: {report['error']}")
+            objects = {o['id']: o for o in report['objects']}
+            box = objects[report['cards'][0]['object']]
+            cls.cards[(report['screen'], report['layout'])] = (box['x1'], box['y1'], box['x2'], box['y2'])
+        with tempfile.TemporaryDirectory() as tmp:
+            cls.ts = run_ts('''
+console.log(JSON.stringify(DATA.shapes.map((shape: any) => {
+  const m = sectionMetrics(shape);
+  return { left: m.pad, rows1: insideMargins(m, 1, 0, 0), rows2: insideMargins(m, 2, 0, 0) };
+})));''', {'shapes': [shape for _, _, shape in cls.shapes]}, tmp)
+
+    def test_every_board_that_draws_sections_is_here(self):
+        self.assertGreater(len(self.shapes), 10)
+        for key, board, shape in self.shapes:
+            self.assertIn('section', shape, f'{key}: boards.json has no section numbers for it, so the editor would guess')
+
+    # The preview has one look per density (web/wasm/preview_profiles.py), made from the first board that has it. The
+    # experimental 4.3-inch JC4880P443 shares 217 dpi with the Waveshare 4.3-inch, whose rows stand 13 pixels apart where
+    # its own stand 12, so the preview draws this board's rows a pixel further apart than its glass does. That is the
+    # preview's, not the editor's: the editor's numbers are the board's own. Kept here so a fix shows up.
+    KNOWN = {'jc4880p443-landscape'}
+
+    def test_a_card_in_a_section_stands_where_the_firmware_puts_it(self):
+        for (key, _, shape), ts in zip(self.shapes, self.ts):
+            loose = self.cards[(key, 'loose')]
+            for rows in ('rows1', 'rows2'):
+                if (key, rows) not in self.cards:
+                    continue
+                x1, y1, _, y2 = self.cards[(key, rows)]
+                if key in self.KNOWN:
+                    self.assertNotEqual((x1 - loose[0], y1 - loose[1], loose[3] - y2), (ts['left'], ts[rows]['top'], ts[rows]['bottom']),
+                                        f'{key} is fixed: take it out of Sections.KNOWN')
+                    continue
+                # The card's left edge moves in by the section's padding, its top down by the room above it (the header
+                # for the first row), and its bottom by the room below it, which is negative where a later row gives
+                # some of its own (insideMargins shares the header evenly over the section's rows).
+                with self.subTest(shape=key, section=rows):
+                    self.assertEqual((x1 - loose[0], y1 - loose[1], loose[3] - y2), (ts['left'], ts[rows]['top'], ts[rows]['bottom']),
+                                     f'{key} {rows}: the padding at the section\'s side, the room above the card (its header) '
+                                     'and the room below it: the firmware preview first, the editor second')
 
 
 class WatchCard(unittest.TestCase):
@@ -1413,3 +1489,79 @@ int main() {
 
 if __name__ == '__main__':
     unittest.main()
+
+
+GRAPH_SERIES = [
+    [20.0 + (i * 7 % 11) * 0.37 for i in range(24)],
+    [230.0] * 19 + [229.5, 229.4, 229.6, 230.1, 230.3],
+    [0.0, 2.0, None, 4.0] + [None] * 18 + [3.0, 1.0],
+    [5.0, 5.0, 5.0],
+    [12.5],
+    [None, -3.0, -1.0, None, None, 8.0, 7.5, 7.0, 6.0, None, 2.0, 2.5, 3.0, 9.0, 1.0, 0.0, None, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0],
+]
+GRAPH_BOXES = [(200, 50, 2), (120, 40, 2), (331, 92, 3), (64, 18, 2), (600, 160, 3)]
+
+
+class Graph(unittest.TestCase):
+    """A sensor's graph on a card: render_graph's points through smooth(), the wide card's share and the fill."""
+
+    def test_the_points_are_render_graphs(self):
+        compiler(), node()
+        graph = cut(r'inline void render_graph\(Widgets &w,const Tile &t,bool large,int x,int y,int width,int height\) \{\s*'
+                    r'begin_extra\(w,"graph",x\+width,y\+height\);(.*?)unsigned count=smooth',
+                    (ROOT / 'components/smart_display/weather_tile_lvgl.h').read_text(), 'render_graph')
+        smooth = cut(r'inline unsigned smooth\(.*?\n\}', (ROOT / 'components/smart_display/tile_widgets_lvgl.h').read_text(), 'smooth()')
+        cases = [(series, box) for series in GRAPH_SERIES for box in GRAPH_BOXES]
+        rows = ',\n'.join('{{%s}, %d, %d, %d}' % (', '.join('NAN' if v is None else repr(float(v)) + 'f' for v in series), *box)
+                           for series, box in cases)
+        with tempfile.TemporaryDirectory() as tmp:
+            out = build_and_run(f'''#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <cstdio>
+#include <vector>
+typedef int32_t lv_value_precise_t;
+struct lv_point_precise_t {{ lv_value_precise_t x, y; }};
+static const unsigned POINT_BUFFER = 256;
+{smooth}
+struct Tile {{ std::vector<float> history; }};
+struct Case {{ std::vector<float> history; int width, height, stroke; }};
+static const Case CASES[] = {{
+{rows}
+}};
+int main() {{
+  lv_point_precise_t points[POINT_BUFFER];
+  for (const auto &c : CASES) {{
+    const Tile t{{c.history}};const int width=c.width,height=c.height;
+    // render_graph as it stands, its stroke the case's (ui::px(large?3:2) on the glass).
+    struct {{ int px(int v) const {{ return v; }} }} ui_;
+    const bool large=c.stroke==3;
+    auto px=[&](int v){{ return v; }};
+{graph.replace('ui::px', 'px')}
+    unsigned count=smooth(raw,n,points,POINT_BUFFER,width,height);
+    for (unsigned i = 0; i < count; ++i) std::printf("%d,%d ", (int)points[i].x, (int)points[i].y);
+    std::printf("\\n");
+  }}
+}}
+''', tmp)
+            mine = run_ts('''
+console.log(JSON.stringify(DATA.cases.map(([series, [w, h, stroke]]: any) => cardPoints(series, w, h, stroke).map((p) => `${p.x},${p.y}`).join(" "))));''',
+                          {'cases': cases}, tmp)
+        # The same points, each within a pixel: whether `a-b*c` is rounded once (a fused multiply-add) or twice is the
+        # compiler's and the chip's choice (the S3 and the P4 have madd.s), and moves a cut to a whole pixel by one.
+        for (series, box), fw, ts in zip(cases, out.splitlines(), mine):
+            theirs = [tuple(map(int, p.split(','))) for p in fw.split()]
+            ours = [tuple(map(int, p.split(','))) for p in ts.split()]
+            self.assertEqual(len(ours), len(theirs), f'{box} {series}: cardPoints draws another number of points than smooth()')
+            for a, b in zip(ours, theirs):
+                self.assertLessEqual(max(abs(a[0] - b[0]), abs(a[1] - b[1])), 1, f'{box} {series}: {a} is not render_graph\'s {b}')
+
+    def test_the_wide_cards_share_and_the_fill_are_the_firmwares(self):
+        node()
+        side = cut(r'int chart_w=graph_side\?content_w\*(\d+)/100', TILES, "graph_side's share")
+        fill = cut(r'inline uint8_t fill_opacity\(\) \{ return dark \? \d+ : (\d+); \}',
+                   (ROOT / 'components/smart_display/theme.h').read_text(), 'theme::fill_opacity()')
+        with tempfile.TemporaryDirectory() as tmp:
+            mine = run_ts('console.log(JSON.stringify([GRAPH_SIDE, GRAPH_FILL]));', {}, tmp)
+        self.assertEqual(mine[0], int(side), 'GRAPH_SIDE is not graph_side\'s share')
+        self.assertAlmostEqual(mine[1], int(fill) / 255, msg='GRAPH_FILL is not theme::fill_opacity() of a light card')

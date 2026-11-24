@@ -5,7 +5,7 @@
 // the one action for that screen (plugins/PluginOnScreen). Taking it off is said here, once, for either.
 import { computed, ref, watch } from "vue";
 import { editorLanguage, editorNumber, t, te } from "../i18n";
-import { changesBetween, flashShare, inEditorLanguage, text, type Plugin } from "../model/plugins";
+import { changesBetween, flashShare, inEditorLanguage, sendsLines, text, type Plugin } from "../model/plugins";
 import { glyph } from "../model/topbar";
 import type { Screen } from "../types";
 import PluginReadme from "./PluginReadme.vue";
@@ -67,7 +67,7 @@ function confirmRemove() {
   confirming.value = null;
   plugins.setAsideRemoval(ask.screens, props.plugin, [...ask.with, ...(alsoOrphans.value ? ask.orphans : [])]);
 }
-// A plugin added with a link and run by no screen is taken off the list again.
+// A plugin added with a link, or a folder someone was making, that no screen runs, is taken off the list again.
 async function forget() {
   try { await plugins.forgetLink(props.plugin); emit("close"); } catch (error: any) { ui.toast(error.message); }
 }
@@ -173,7 +173,7 @@ const history = computed(() => (!newsFrom.value ? changesBetween(text(props.plug
   <!-- What an update brings, before the person presses it: the changelog's lines from the version they run. -->
   <section v-if="newsFrom" class="pd-section pd-news" id="plugin-news">
     <h3>{{ t("editor.plugins.news.title", { version: plugin.version }) }}</h3>
-    <PluginReadme v-if="news" :source="news" :repo="plugin.repo" />
+    <PluginReadme v-if="news" :source="news" :repo="plugin.repo" :plugin="plugin.id" :version="plugin.ref" />
     <p v-else class="pd-room">{{ t("editor.plugins.news.none") }}</p>
     <a v-if="newsCompare" class="pd-news-link" :href="newsCompare" target="_blank" rel="noopener">{{ t("editor.plugins.changes") }}</a>
   </section>
@@ -200,13 +200,13 @@ const history = computed(() => (!newsFrom.value ? changesBetween(text(props.plug
   <!-- The plugin's README: what to do in Home Assistant, where a key comes from. Its own words, safely shown. -->
   <section v-if="text(plugin.readme)" class="pd-section" id="plugin-readme">
     <h3>{{ t("editor.plugins.readme.title") }}</h3>
-    <PluginReadme :source="text(plugin.readme)" :repo="plugin.repo" />
+    <PluginReadme :source="text(plugin.readme)" :repo="plugin.repo" :plugin="plugin.id" :version="plugin.ref" />
   </section>
 
   <section v-if="label !== 'test'" class="pd-section">
     <h3>{{ t("editor.plugins.adds.title") }}</h3>
     <ul class="pd-list">
-      <li v-for="tile in plugin.tiles || []" :key="`tile-${tile.id}`"><Icon name="view-dashboard-outline" /><span><b>{{ t("editor.plugins.adds.tile", { name: text(tile.name) }) }}</b><small>{{ t("editor.plugins.adds.tile_sizes", { min: tile.min, max: tile.max }) }}</small></span></li>
+      <li v-for="tile in plugin.tiles || []" :key="`tile-${tile.id}`"><Icon name="view-dashboard-outline" /><span><b>{{ t("editor.plugins.adds.tile", { name: text(tile.name) }) }}</b><small>{{ !tile.min ? t("editor.plugins.adds.tile_only_page") : t(tile.full ? "editor.plugins.adds.tile_sizes_or_page" : "editor.plugins.adds.tile_sizes", { min: tile.min, max: tile.max }) }}</small></span></li>
       <li v-for="card in plugin.cards || []" :key="`card-${card.id}`"><Icon name="monitor-eye" /><span><b>{{ t("editor.plugins.adds.card", { name: text(card.name) }) }}</b></span></li>
       <li v-for="action in plugin.tap_actions || []" :key="`tap-${action.id}`"><Icon name="gesture-tap" /><span><b>{{ t("editor.plugins.adds.tap", { name: text(action.label) }) }}</b><small>{{ t("editor.plugins.adds.tap_on", { domains: action.domains.map(domainName).join(", ") }) }}</small></span></li>
       <li v-for="bar in plugin.bar_items || []" :key="`bar-${bar.id}`"><Icon name="page-layout-header" /><span><b>{{ t("editor.plugins.adds.bar", { name: text(bar.label) }) }}</b></span></li>
@@ -232,12 +232,14 @@ const history = computed(() => (!newsFrom.value ? changesBetween(text(props.plug
       </span></li>
       <li v-if="plugin.permissions.read_entities?.length"><Icon name="eye-outline" /><span><b>{{ t("editor.plugins.may.read") }}</b><small><code v-for="entity in plugin.permissions.read_entities" :key="entity">{{ entity }}</code></small></span></li>
       <li><Icon name="wifi-strength-off-outline" /><span><b>{{ plugin.permissions.network.length ? t("editor.plugins.may.network", { hosts: plugin.permissions.network.join(", ") }) : t("editor.plugins.may.network_none") }}</b></span></li>
+      <!-- What its fetches send of this Home Assistant (plugin API 0.27): an attribute of an entity the person chooses. -->
+      <li v-for="line in sendsLines(plugin)" :key="`sends-${line.host}`" class="plugin-sends"><Icon name="tray-arrow-up" /><span><b>{{ line.what }}</b></span></li>
     </ul>
     <p v-if="!plugin.tessera" class="pd-warning" id="plugin-warning">{{ t("editor.plugins.warning") }}</p>
   </section>
 
   <section v-if="plugins.forgettable(plugin)" class="pd-section" id="plugin-forget">
-    <p class="pd-note">{{ t("editor.plugins.forget.note") }}</p>
+    <p class="pd-note">{{ plugin.source === "folder" ? t("editor.plugins.forget.note_folder", { id: plugin.id }) : t("editor.plugins.forget.note") }}</p>
     <button type="button" class="btn" id="plugin-forget-go" @click="forget"><Icon name="delete-outline" />{{ t("editor.plugins.forget.go") }}</button>
   </section>
 
@@ -257,7 +259,7 @@ const history = computed(() => (!newsFrom.value ? changesBetween(text(props.plug
 
   <details v-if="history" class="pd-section pd-history" id="plugin-history">
     <summary><h3>{{ t("editor.plugins.news.history") }}</h3><Icon name="chevron-down" /></summary>
-    <PluginReadme :source="history" :repo="plugin.repo" />
+    <PluginReadme :source="history" :repo="plugin.repo" :plugin="plugin.id" :version="plugin.ref" />
   </details>
 
   <p class="pd-links">

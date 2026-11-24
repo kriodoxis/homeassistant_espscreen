@@ -45,16 +45,19 @@ class WhatAChangeReaches(unittest.TestCase):
             self.assertEqual(reach(name)[name], EVERY, name)
 
     def test_a_component_some_boards_load_reaches_those_boards(self):
-        """The CYD's xpt2046 and the mipi_dsi_v3 of the rev3 ESP32-P4 boards (the JC8012P4A1 V3 and the Waveshare
-        ESP32-P4-WIFI6-Touch-LCD-7B) are platforms of those boards alone: a fix in one is firmware for them, not for every
-        screen."""
+        """The CYD's xpt2046 and the mipi_dsi_v3 of the ESP32-P4 boards (every P4 board takes it on rev3 silicon,
+        DSI_PLATFORM in hardware/esp32p4-core.yaml) are platforms of those boards alone: a fix in one is firmware for them,
+        not for every screen."""
         for name, board in (('components/xpt2046/touchscreen/xpt2046.cpp', 'cyd'),
                             ('components/mipi_dsi_v3/mipi_dsi.cpp', 'jc8012p4a1v3')):
             boards = reach(name)[name]
             self.assertIn(board, boards, name)
             self.assertNotEqual(boards, EVERY, name)
-        self.assertEqual(reach('components/mipi_dsi_v3/display.py')['components/mipi_dsi_v3/display.py'],
-                         {'jc8012p4a1v3', 'wavesharep47b'})
+        p4 = {board for board in profiles.BOARDS
+              if (ROOT / 'packages/hardware/esp32p4-core.yaml').resolve() in
+              [p.resolve() for p in profiles.files(f'checkout/{board}.yaml')]}
+        self.assertGreaterEqual(len(p4), 14)
+        self.assertEqual(reach('components/mipi_dsi_v3/display.py')['components/mipi_dsi_v3/display.py'], p4)
 
     def test_a_package_reaches_the_boards_that_include_it(self):
         """A feature, look, hardware or cells file reaches exactly the boards whose chain names it."""
@@ -88,9 +91,10 @@ class WhatAChangeReaches(unittest.TestCase):
         changed = now.replace('BOARD_ID: "waveshare4b"', 'BOARD_ID: "waveshare4b"\n  EXTRA: "1"', 1)
         with mock.patch.object(affected_boards, 'git', return_value=changed):
             self.assertEqual(affected_boards.sort([name], 'base')[name], {'waveshare4b'})
+        # A line that starts as a comment does but is the preprocessor's, in a lambda: code.
         core = (ROOT / 'packages/core.yaml').read_text()
-        self.assertIn('#ifdef USE_ESP32', core)
-        with mock.patch.object(affected_boards, 'git', return_value=core.replace('#ifdef USE_ESP32', '#ifdef USE_X', 1)):
+        inside = re.sub(r'lambda: \|-\n( +)', r'lambda: |-\n\1#ifdef USE_X\n\1#endif\n\1', core, count=1)
+        with mock.patch.object(affected_boards, 'git', return_value=inside):
             self.assertEqual(affected_boards.sort(['packages/core.yaml'], 'base')['packages/core.yaml'], EVERY)
         # A new file (not in the base) is never comments alone.
         with mock.patch.object(affected_boards, 'git', side_effect=affected_boards.subprocess.CalledProcessError(128, 'git')):
@@ -251,9 +255,12 @@ class TheOlderESPHome(unittest.TestCase):
         self.assertEqual(affected_boards.older_sample(reach('packages/core.yaml', 'docs/TESTING.md')), ['guition'])
 
     def test_check_sh_builds_it_on_an_older_esphome(self):
+        # A rule of the script: its --firmware --affected build on the packages' min_version asks this tool which boards.
         script = (ROOT / 'tools/check.sh').read_text()
-        self.assertIn('affected_boards.py --older-sample', script)
-        self.assertIn('older_version "$running" "$pinned"', script)
+        self.assertIn('affected_boards.py --older-sample', script,
+                      'tools/check.sh builds the older ESPHome\'s boards from affected_boards.py --older-sample')
+        self.assertIn('older_version "$running" "$pinned"', script,
+                      'tools/check.sh tells an older running ESPHome from the pinned one before it picks that sample')
 
 
 class AForgottenNumber(unittest.TestCase):

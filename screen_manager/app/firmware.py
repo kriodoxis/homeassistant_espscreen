@@ -16,8 +16,11 @@ import yaml
 import zipfile
 import atomic
 import build_cache
+import build_files
+import build_logs
 import build_memory
 import build_server
+import chip_revision
 from core import BOARD_KEYS, REF, REPO, SHAPES, channel, hotspot_name, installation_yaml, old_hotspot_name, our_ref, ref
 from i18n import t
 
@@ -130,6 +133,50 @@ def terminal_line(text):
     return parts[-1].rstrip() if parts else ''
 
 
+def _secrets_loader(text, folder, depth):
+    class Loader(yaml.SafeLoader):
+        def flatten_mapping(self, node):
+            for index, (key, value) in enumerate(node.value):
+                if key.tag == 'tag:yaml.org,2002:merge' and value.tag == '!include':
+                    node.value[index] = (key, _included_secrets(folder, self.construct_scalar(value), depth, value.start_mark))
+            super().flatten_mapping(node)
+    # A key whose whole value is an include is no secret this app can use: it reads as missing, never as an error.
+    Loader.add_constructor('!include', lambda loader, node: None)
+    return Loader(text)
+
+
+def _included_secrets(folder, name, depth, mark):
+    if depth >= 4:
+        raise yaml.constructor.ConstructorError(None, None, 'secrets include each other too deep', mark)
+    path = Path(folder) / name
+    try:
+        loader = _secrets_loader(path.read_text(), path.parent, depth + 1)
+    except (OSError, UnicodeError) as error:
+        raise yaml.constructor.ConstructorError(None, None, f'cannot read the included {name} ({error})', mark) from None
+    try:
+        root = loader.get_single_node()
+        if root is None:
+            return yaml.MappingNode('tag:yaml.org,2002:map', [])
+        if not isinstance(root, yaml.MappingNode):
+            raise yaml.constructor.ConstructorError(None, None, f'the included {name} is not a list of keys', mark)
+        loader.flatten_mapping(root)   # its own includes, counted from its own folder
+        return root
+    finally:
+        loader.dispose()
+
+
+def read_secrets(text, folder):
+    """ESPHome's secrets.yaml as ESPHome reads it. A file may take its keys from another one with
+    `<<: !include ../secrets.yaml`, one file of secrets for Home Assistant and ESPHome (GitHub #351); a key of its own
+    wins over an included one. `folder` is where the file stands, which an include counts from. Raises yaml.YAMLError
+    for text that is not YAML, an include that cannot be read, or includes more than four deep."""
+    loader = _secrets_loader(text, folder, 0)
+    try:
+        return loader.get_single_data()
+    finally:
+        loader.dispose()
+
+
 class Firmware:
     OVERRIDE_SUFFIX = '.local.yaml'
     OVERRIDE_LIMIT = 12 * 1024  # bytes; checked here, far below the request body limit (128 KB since app 0.2.78)
@@ -142,14 +189,15 @@ class Firmware:
     # and quietly win on one built lying down. That is worse than being told, so it is refused here with its own
     # sentence rather than the general "these stay managed" one: people were told to override display settings (GitHub
     # #12 and #15), and the sentence has to say where the choice lives now.
+    # CHIP_REVISION is read from the chip itself and written into the profile before each build (chip_revision.py).
     PROTECTED_SUBSTITUTIONS = frozenset({'DEVICE_NAME', 'DEVICE_FRIENDLY_NAME', 'SCREEN_FIRMWARE_VERSION', 'LANGUAGE',
-                                         'LVGL_ROTATION'})
+                                         'LVGL_ROTATION', chip_revision.KEY})
     # ESPHome's "Factory format" (bootloader, partition table and app from address 0), the file ESPHome Web
     # flashes on a board. A build writes it next to firmware.bin: under .pioenvs/<node>/ with PlatformIO,
     # under build/ with ESPHome's native ESP-IDF toolchain.
-    FACTORY_IMAGES = ('*/.pioenvs/*/firmware.factory.bin', '*/build/firmware.factory.bin')
+    FACTORY_IMAGES = build_files.in_build('firmware.factory.bin')
     # The image an update over Wi-Fi sends, beside it.
-    OTA_IMAGES = ('*/.pioenvs/*/firmware.ota.bin', '*/build/firmware.ota.bin')
+    OTA_IMAGES = build_files.in_build('firmware.ota.bin')
     # One update slot of ESPHome's own table for 4 MB of flash, in bytes: what a screen that still has that table can
     # take. A board whose flash takes the wide table (boards.json `wide_slots`, app 0.4.56) builds for slots of
     # 2,031,616 bytes, and a firmware larger than this goes to a screen with the old table over a bridge
@@ -176,7 +224,7 @@ class Firmware:
         self.root, self.data = Path(root).resolve(), Path(data)
         self.job = None
         self.task = None
-        self.logs = deque(maxlen=300)
+        self.logs = build_logs.Tee(300)  # also written to disk while a build runs (build_logs.py)
         self.process = None
         self.installed = set()  # profiles this process flashed successfully; the page nudges pairing for them
         # Factory image per profile from its last successful build in this process; only these are downloaded,
@@ -185,6 +233,9 @@ class Firmware:
         self.downloaded = set()
         self._names = {}  # file -> (stat signature, meta or None); parsed only when the file changes
         self.language = None  # the language builds speak: the manager's Settings -> Language & region (app 0.2.90)
+        # What the app knows of a profile's chip without a cable (chip_revision.known): the manager's, from the screen's
+        # "Screen chip" sensor or its Override YAML. A callable of the profile's file name; None on its own (a test).
+        self.chip_of = None
         # The app's build line (build_queue.BuildQueue), which alone starts a job here; None on its own (a test).
         self.builds = None
         # The build server builds go to first when it is on (build_server.BuildServer, docs/BUILDS.md "On a build
@@ -243,7 +294,7 @@ class Firmware:
             return {'state': 'new', 'missing': ['wifi_ssid', 'wifi_password']}
         try:
             text = path.read_text()
-            values = yaml.safe_load(text)
+            values = read_secrets(text, self.root)
             # An empty file, or one of comments only (as ESPHome's Device Builder leaves it), has no keys yet, as ESPHome
             # reads it too (#263). A document of its own, even `~` or `[]`, is not a file of secrets and stays untouched.
             if values is None and yaml.compose(text) is None:
@@ -300,11 +351,10 @@ class Firmware:
             raise ValueError(t('addon.errors.firmware.wifi_not_set'))
         self._write_secrets(path, text)
 
-    @staticmethod
-    def _parsed(text):
+    def _parsed(self, text):
         # The file as it would be written: a text the appended lines made unreadable is never written, and says so.
         try:
-            return yaml.safe_load(text)
+            return read_secrets(text, self.root)
         except yaml.YAMLError:
             return None
 
@@ -361,6 +411,26 @@ class Firmware:
         changed or added without reformatting the user's YAML. A profile that doesn't build from ESP Screens' packages is
         left alone, as is an English one without the line (English is the packages' own default). True when it changed."""
         return self._set_substitution(name, 'LANGUAGE', language, default='en', what='language')
+
+    def set_chip_revision(self, name, revision):
+        """Build the profile for the chip's silicon revision (docs/CHIP_REVISIONS.md): the CHIP_REVISION line of its
+        substitutions, changed or added as the language is. True when it changed."""
+        revision = chip_revision.valid(revision)
+        if revision is None:
+            return False
+        changed = self._set_substitution(name, chip_revision.KEY, str(revision), what='chip revision')
+        if changed:
+            LOG.info('%s: built for chip revision v%d.%d from now on', name, revision // 100, revision % 100)
+        return changed
+
+    def chip_revision(self, name):
+        """The revision a profile's own YAML builds for, or None when it has no line (the board's default builds)."""
+        try:
+            data = yaml.load(self.profile(name).read_text(), Loader=LenientLoader)
+        except (OSError, ValueError, yaml.YAMLError):
+            return None
+        substitutions = data.get('substitutions') if isinstance(data, dict) else None
+        return chip_revision.valid(substitutions.get(chip_revision.KEY)) if isinstance(substitutions, dict) else None
 
     def _set_substitution(self, name, key, value, default=None, what='setting'):
         """One substitution of an existing profile, changed or added without reformatting the user's YAML.
@@ -809,7 +879,7 @@ packages:
         path = self.root / 'secrets.yaml'
         if wanted and path.is_file() and not path.is_symlink():
             try:
-                values = yaml.safe_load(path.read_text())
+                values = read_secrets(path.read_text(), self.root)
             except (OSError, yaml.YAMLError, UnicodeError):
                 values = None
             if isinstance(values, dict):
@@ -881,15 +951,17 @@ packages:
             parsed = yaml.load(content, Loader=LenientLoader)
         except yaml.YAMLError as error:
             raise ValueError(t('addon.errors.plugins.file')) from error
-        if not isinstance(parsed, dict) or set(parsed) - {'packages', 'external_components'}:
+        if not isinstance(parsed, dict) or set(parsed) - {'packages', 'external_components', 'font'}:
             raise ValueError(t('addon.errors.plugins.file'))
         self._atomic_write(path, content)
         self._ensure_include(profile, 'tessera_plugins', path.name)
         return self.plugins_file(profile.name)
 
-    def install(self, data):
+    def install(self, data, prepared=None):
         """Profile plus, when a USB port is chosen, the build and flash in one go. With the target
-        'download' it builds only, and the owner flashes the image from their own computer.
+        'download' it builds only, and the owner flashes the image from their own computer. `prepared(result)` runs
+        once the profile is written and before its build is asked for: what else the first build takes (the plugins
+        New screen's wizard chose) is written there.
 
         The target is checked before anything is written, so a refused install leaves no half-made profile behind. In
         the app the job waits its turn in the build line (`builds`, build_queue.BuildQueue.attended) and `build` is
@@ -903,6 +975,8 @@ packages:
             if not shutil.which('esphome'):
                 raise ValueError(t('addon.errors.firmware.no_esphome'))
         result = self.create(data)
+        if prepared is not None:
+            prepared(result)
         if target:
             request = {'file': result['file'], 'action': 'download'} if target == 'download' else \
                 {'file': result['file'], 'action': 'install', 'target': target}
@@ -994,14 +1068,15 @@ packages:
             raise ValueError(t('addon.errors.firmware.choose_profile'))
         profile = self.profile(data.get('file'))
         action = data.get('action')
-        # 'widen' sends the partition table of the profile's last build (app 0.4.56), nothing else.
-        if action not in ('validate','build','install','download','widen'): raise ValueError(t('addon.errors.firmware.unknown_action'))
+        # 'widen' sends the partition table of the profile's last build (app 0.4.56), nothing else; 'upload' sends the
+        # firmware of its last build (a build made ahead while another screen was checked, docs/BUILDS.md "Building ahead").
+        if action not in ('validate','build','install','download','widen','upload'): raise ValueError(t('addon.errors.firmware.unknown_action'))
         if not shutil.which('esphome'): raise ValueError(t('addon.errors.firmware.no_esphome'))
         target = data.get('target') or ''
         if not isinstance(target, str): raise ValueError(t('addon.errors.firmware.host'))
         if action == 'widen' and target.startswith('/dev/'):
             raise ValueError(t('addon.errors.firmware.host'))  # ESPHome sends a table over Wi-Fi only
-        if action in ('install', 'widen'):
+        if action in ('install', 'widen', 'upload'):
             if target.startswith('/dev/'):
                 if target not in self.ports(): raise ValueError(t('addon.errors.firmware.usb_port'))
             elif not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9.-]{0,252}',target):
@@ -1014,7 +1089,7 @@ packages:
         profile, action, target = self.check(data)
         # What a build writes into the screen's own YAML first. Not for a table, which goes with the build that was
         # made, and not for a bridge, which this app wrote whole.
-        managed = action not in ('validate', 'widen') and not profile.name.endswith(self.BRIDGE_SUFFIX)
+        managed = action not in ('validate', 'widen', 'upload') and not profile.name.endswith(self.BRIDGE_SUFFIX)
         # ESPHome Device Builder lists the Override YAML as a device of its own (`<name>.local`, GitHub #219), and
         # deleting that one leaves the screen's YAML including a file that is gone: every build stops at "file not
         # found". An empty override, the one New screen writes, makes it build again.
@@ -1030,6 +1105,21 @@ packages:
                 self.set_language(profile.name, self.language())
             except (OSError, ValueError, yaml.YAMLError) as error:
                 LOG.warning('Could not write the language into %s (%s)', profile.name, error)
+        # The silicon revision of the screen's chip (docs/CHIP_REVISIONS.md): what the installer read from the chip on the
+        # cable and sent with this job, else what the screen's own sensor or its Override YAML says. A port of Home
+        # Assistant's machine is read in `run`, right before the build, and wins over both.
+        if managed:
+            revision = chip_revision.valid(data.get('chip_revision'))
+            if revision is None and callable(self.chip_of):
+                try:
+                    revision = self.chip_of(profile.name)
+                except Exception as error:  # noqa: BLE001 - the build goes on with what the YAML says
+                    LOG.warning('Could not tell the chip revision of %s (%s)', profile.name, error)
+            if revision is not None:
+                try:
+                    self.set_chip_revision(profile.name, revision)
+                except (OSError, ValueError, yaml.YAMLError) as error:
+                    LOG.warning('Could not write the chip revision into %s (%s)', profile.name, error)
         # What the app's channel builds from (core.ref): the stable app's own release tag, dev for an app added from the
         # `#dev` URL. An app with no channel (a local copy, a fork) leaves it as it is.
         if managed and channel():
@@ -1076,7 +1166,7 @@ packages:
         override_file = self.root / (profile.stem + self.OVERRIDE_SUFFIX)
         if override_file.exists() and not override_file.is_symlink():
             collect(yaml.compose(override_file.read_text()))
-        if action != 'widen':
+        if action not in ('widen', 'upload'):
             self.images.pop(profile.name, None)  # until this job succeeds, the old image may no longer match the profile
         self.logs.clear()
         if dropped:
@@ -1233,12 +1323,22 @@ packages:
     async def run(self, profile, action, target):
         env = self.build_env(profile)
         try:
-            if action not in ('validate', 'widen'):
+            if action == 'install' and target.startswith('/dev/') and not profile.name.endswith(self.BRIDGE_SUFFIX):
+                # The chip on Home Assistant's own USB port, read before the build so the firmware fits its silicon
+                # (docs/CHIP_REVISIONS.md). A chip that does not answer leaves the YAML as it is; the upload says more.
+                revision = await chip_revision.read_usb(target)
+                if revision is not None:
+                    self.logs.append(f'The chip on {target} is revision v{revision // 100}.{revision % 100}.')
+                    try:
+                        self.set_chip_revision(profile.name, revision)
+                    except (OSError, ValueError, yaml.YAMLError) as error:
+                        LOG.warning('Could not write the chip revision into %s (%s)', profile.name, error)
+            if action not in ('validate', 'widen', 'upload'):
                 await self.retire_platformio()
                 # A build the server makes needs no compile cache here; one that falls back gets it then.
                 if not (self.server and self.server.wanted()):
                     await self.seed_cache(profile, env)
-            stages = ['config'] if action=='validate' else ['upload'] if action=='widen' else ['compile'] + (['upload'] if action=='install' else [])
+            stages = ['config'] if action=='validate' else ['upload'] if action in ('widen', 'upload') else ['compile'] + (['upload'] if action=='install' else [])
             memory = None
             for stage in stages:
                 cmd=['esphome']+(['--quiet'] if stage=='config' else [])+[stage]+(['--partition-table'] if action=='widen' else [])+[str(profile)]
@@ -1270,11 +1370,11 @@ packages:
                     memory = self.job['memory'] = {**memory, 'reason': 'out' if short else 'limit'}
                     raise RuntimeError(self.memory_note(memory))
                 if code: raise RuntimeError('ESPHome '+stage+' failed; see the log.')
-            image = self.factory_image(profile) if action not in ('validate', 'widen') else None
+            image = self.factory_image(profile) if action not in ('validate', 'widen', 'upload') else None
             if action == 'download' and not image:
                 raise RuntimeError('ESPHome built no factory image (firmware.factory.bin) to download; see the log.')
             self.job['state']='success'; self.logs.append('Succeeded: '+action)
-            if action=='install': self.installed.add(profile.name)
+            if action in ('install', 'upload'): self.installed.add(profile.name)
             if image: self.images[profile.name] = image
         except asyncio.CancelledError:
             self.job['state']='interrupted'

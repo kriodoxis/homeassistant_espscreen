@@ -1,10 +1,12 @@
-"""Wake and Sleep buttons for Home Assistant automations (app 0.2.53, firmware 0.2.45) and the standby
-code around them (tidied in app 0.2.54, firmware 0.2.46).
+"""Wake, Sleep and Motion for Home Assistant automations (app 0.2.53, firmware 0.2.45; Motion firmware 0.64.0) and
+what every board's YAML keeps around the screen's standby.
 
-Both board profiles have to wire them the same way: Wake lights the screen and restarts the standby time,
-Sleep is the standby time running out right away, and a Sleep holds until a tap, Wake or an alert ends it,
-whatever turns Auto standby off. Since app 0.2.65 (firmware 0.2.56) Wake is no tap: Back to page 1 counts
-from the last touch, so an automation pressing Wake on every motion no longer holds a card or page 2 up.
+The standby itself is C++ and is proven by running it: components/smart_display/screen_standby.h holds the state and
+every rule (lit or in standby, by the time or by hand, which wake lights the screen, the quiet a sensed wake waits for,
+the order of a standby that goes to page 1), and tests/test_screen_standby.cpp runs each of them on a glass that writes
+down what it was told. `tools/render/run.py guition --only standby` presses Wake and Sleep on the real firmware (a
+host build) and reads its clocks and pages back. What stays here is what only the YAML can get wrong: the entities
+Home Assistant sees, and that each script is one call into that file.
 """
 import re
 import sys
@@ -17,7 +19,7 @@ import profiles  # noqa: E402
 sys.path.insert(0, str(ROOT / 'screen_manager/app'))
 from core import FIRMWARE_VERSION, WAKE_SLEEP_MIN_FIRMWARE  # noqa: E402
 
-PROFILES = ('checkout/cyd.yaml', 'checkout/guition.yaml', 'packages/cyd.yaml', 'packages/guition.yaml')
+PROFILES = {board: profile for board, _, profile in profiles.BOARD_TABLE}
 
 
 def section(text, top):
@@ -45,162 +47,104 @@ def script(text, name):
 
 
 class Profiles(unittest.TestCase):
-    def setUp(self):
-        self.profiles = {name: profiles.text(name) for name in PROFILES}
+    @classmethod
+    def setUpClass(cls):
+        cls.profiles = {board: profiles.text(profile) for board, profile in PROFILES.items()}
 
     def test_the_firmware_that_carries_the_buttons_is_this_release_or_older(self):
-        version = lambda text: tuple(int(part) for part in text.split('.'))
+        version = lambda text: tuple(int(part) for part in text.split('.'))  # noqa: E731
         self.assertLessEqual(version(WAKE_SLEEP_MIN_FIRMWARE), version(FIRMWARE_VERSION))
 
     def test_both_buttons_are_plain_controls_home_assistant_sees(self):
+        # Automations press them (README), so every board has both, as controls Home Assistant shows.
         for name, text in self.profiles.items():
             buttons = section(text, 'button')
-            for label in ('Wake', 'Sleep'):
+            for label in ('Wake', 'Sleep', 'Motion'):
                 button = item(buttons, 'name', label)
                 self.assertTrue(button, f'{name}: no {label} button')
                 self.assertIn('platform: template', button, name)
                 self.assertNotIn('entity_category', button, f'{name}: {label} is a control, not a setting')
                 self.assertNotIn('internal', button, f'{name}: {label} must reach Home Assistant')
 
-    def test_wake_is_light_not_a_tap(self):
+    def test_every_way_in_and_out_is_one_call_into_the_standby(self):
+        # The names a board's key, a feature, a plugin's package and an Override YAML call: each is the standby's own
+        # function and nothing beside it, so there is no second place where a rule could live.
+        calls = {
+            'wake_display': "screen_standby::the().wake(millis());",
+            'wake_from': "screen_standby::the().wake_from(source.c_str(), screen_standby::Asker::SCRIPT, sensed, millis());",
+            'standby_key': "screen_standby::the().key(millis());",
+            'standby_by_hand': "screen_standby::the().standby_by_hand(source.c_str(), millis());",
+            'go_home': "screen_standby::the().go_home(millis());",
+        }
         for name, text in self.profiles.items():
-            button = item(section(text, 'button'), 'name', 'Wake')
-            # Every wake that is not a finger takes one way, the script wake_from (plugin API 0.16): Home Assistant's
-            # button, a board's sensor (it presses that button) and a plugin (tessera::wake through plugin_host::wake).
-            self.assertRegex(button, r'on_press:\s+- script\.execute:\s+id: wake_from\s+source: "Home Assistant"\s*$', name)
-            self.assertIn('plugin_host::wake = [](const std::string &source) { id(wake_from).execute(source); };', text,
-                          f'{name}: a plugin wakes through the same script')
-            self.assertEqual(len(re.findall(r'id\(wake_from\)|id: wake_from$', text, re.M)), 3,
-                             f'{name}: the script, the button and the plugin hook, nothing else')
-            wake = script(text, 'wake_from')
-            self.assertIn('source: string', wake, name)
-            # A dimmed screen lights up the way the tap on its wake overlay does, then goes to page 1 at once when
-            # that time ran out during standby; one that is on only restarts the standby time.
-            self.assertRegex(wake, r"return id\(display_dimmed\);'\s+then:\s+- script\.execute: wake_display\s+"
-                                   r"(?:#[^\n]*\s+)?- script\.execute: back_to_page_1_when_due\s+else:\s+"
-                                   r"- lambda: 'id\(last_touch_ms\) = millis\(\);'", name)
-            self.assertNotIn('last_use_ms', wake + button, f'{name}: Wake must not postpone Back to page 1')
-            self.assertNotIn('last_use_ms', script(text, 'wake_display'), f'{name}: waking is no touch')
-            self.assertIn('id(sleep_requested) = false;', script(text, 'wake_display'), f'{name}: waking ends a Sleep')
-            overlay = re.search(r'id: dim_wake_overlay\n.*?on_click:\s+- script\.execute: (\w+)', text, re.S)
-            self.assertEqual(overlay[1], 'wake_display', f'{name}: a tap and Wake share one path')
+            for script_id, call in calls.items():
+                body = [line.strip() for line in script(text, script_id).split('then:', 1)[1].splitlines()
+                        if line.strip() and not line.strip().startswith('#')]
+                self.assertEqual(body, [f"- lambda: '{call}'"], f'{name}: {script_id} is one call')
+            # The standby time and Back to page 1, every second; the home key held; a plugin's wake.
+            self.assertIn("- lambda: 'screen_standby::the().tick(millis());'", section(text, 'interval'), name)
+            self.assertIn('runtime_tiles::hold_home = []() { return screen_standby::the().hold_home(millis()); };', text, name)
+            # A plugin's wake is sensed (tessera::wake) or an event (a popup, a call, a doorbell).
+            self.assertIn('screen_standby::the().wake_from(source.c_str(), screen_standby::Asker::PLUGIN, sensed, millis());',
+                          text, name)
 
-    def test_back_to_page_1_counts_from_the_last_touch(self):
+    def test_the_standby_has_one_timer(self):
+        # Every wait of the standby (the loop's next pass, the power saving of a dark screen) is one script that the
+        # latest ask replaces; screen_standby::due finds what is due.
         for name, text in self.profiles.items():
-            clock = item(section(text, 'globals'), 'id', 'last_use_ms')
-            self.assertIn('type: uint32_t', clock, name)
-            self.assertIn('restore_value: no', clock, name)
-            check = script(text, 'back_to_page_1_when_due')
-            self.assertIn('if (!runtime_tiles::auto_home || id(touch_down) || id(calibration_active) || id(alert_active)) return false;', check, name)
-            self.assertIn('if (id(display_dimmed)) return false;', check, f'{name}: standby keeps its page ("Also on standby")')
-            self.assertRegex(check, r'return away && \(millis\(\) - id\(last_use_ms\)\) > \(uint32_t\) runtime_tiles::auto_home_seconds \* 1000UL;'
-                                    r'\s+then:\s+- script\.execute: go_home', name)
-            self.assertNotIn('last_touch_ms', check, f'{name}: the standby clock is not the page clock')
-            # The one-second interval and Wake run it; nothing else decides about page 1 by itself.
-            interval = section(text, 'interval')
-            self.assertIn('- script.execute: back_to_page_1_when_due', interval, name)
-            self.assertNotIn('auto_home', interval, f'{name}: one copy of the rule')
-            self.assertEqual(len(re.findall(r'script\.execute: back_to_page_1_when_due', text)), 2, name)
-            # Written by the boot, the three touchscreen triggers, Home Assistant opening the settings page or a page of
-            # tiles (and, on the Guition, a camera) and the UI self test only; Wake, an alert ending and Auto standby
-            # restart the standby time alone.
-            # A board whose touchscreen triggers call the shared handler writes the page clock once, in the hook
-            # the shared boot sets (runtime_tiles::touch_input::contact); a board that still carries its own
-            # three lambdas writes it in each of them. Either way every trigger leads to the clock.
-            touch = section(text, 'touchscreen')
-            # A board that hands its touches to the shared handler, rather than one that only asks the shared
-            # tree to turn a point for it (the CYD does that for its calibration wizard, firmware 0.2.92+).
-            shared = 'runtime_tiles::touch_input::pressed' in touch
-            # Five in the shared tree whatever the board (the boot, Home Assistant opening the settings page or a
-            # page of tiles, the UI self test, an alarm panel that wakes the screen with its card, firmware 0.3.3+)
-            # plus the one in the hook the shared touch handler calls; a board that kept its own three lambdas writes
-            # the clock three more times.
-            # Plus one: a tap on the top bar's Wi-Fi item opens "This screen" (firmware 0.38.0).
-            expected = 7 + (0 if shared else 3)
-            if 'preview_camera' in text:
-                expected += 1
-            self.assertEqual(len(re.findall(r'id\(last_use_ms\) = millis\(\);', text)), expected, name)
-            for trigger in ('on_touch', 'on_update', 'on_release'):
-                # The trigger at whatever depth its touchscreen item has (the board's, or a touch feature's !extend).
-                body = re.search(rf'^( +){trigger}:\n(.*?)(?=^\1[a-z_]+:|^\S|\Z)', touch, re.M | re.S)[2]
-                self.assertIn('id(last_use_ms) = millis();' if not shared else 'runtime_tiles::touch_input::',
-                              body, f'{name}: {trigger}')
-            if shared:
-                contact = re.search(r'touch_input::contact = \[\]\(bool down\) \{(.*?)\};', text, re.S)
-                self.assertTrue(contact, f'{name}: the shared handler needs the clock hook')
-                self.assertIn('id(last_use_ms) = millis();', contact[1], name)
-            for opened in ('open_settings', 'show_page'):
-                self.assertIn('id(last_use_ms) = millis();', re.search(rf'- action: {opened}\n(.*?)- action:', text, re.S)[1], f'{name}: {opened}')
-            self.assertIn('id(last_use_ms) = millis();', script(text, 'ui_self_test'), name)
-            for quiet in (script(text, 'alert_dismiss'), item(section(text, 'switch'), 'name', 'Auto standby')):
-                self.assertIn('id(last_touch_ms) = millis();', quiet, name)
-                self.assertNotIn('last_use_ms', quiet, name)
+            wait = script(text, 'standby_wait')
+            self.assertIn('mode: restart', wait, name)
+            self.assertIn('- delay: !lambda return ms;', wait, name)
+            self.assertIn("- lambda: 'screen_standby::the().due(millis());'", wait, name)
+            self.assertIn('glass.later = [](uint32_t ms) { id(standby_wait).execute(ms); };', text, name)
+            self.assertIn('screen_power::later = [](uint32_t ms) { screen_standby::the().power_wait(ms, millis()); };',
+                          text, name)
 
-    def test_sleep_dims_now_and_holds_with_auto_standby_off(self):
+    def test_the_yaml_keeps_no_state_of_the_standby(self):
+        # The state is private to screen_standby.h (the compiler keeps that); the globals and scripts that held it in
+        # the YAML before are gone, and no package brings one back.
         for name, text in self.profiles.items():
-            sleep = item(section(text, 'button'), 'name', 'Sleep')
-            # Not during a touch calibration (said in the log); otherwise the flag, a closed alert, then the dim.
-            self.assertRegex(sleep, r"return id\(calibration_active\);'\s+then:\s+- lambda: 'ESP_LOGI\(\"standby\", \"Sleep from Home Assistant ignored", name)
-            steps = re.findall(r'script\.execute:(?:\s+id:)?\s+(\w+)|(id\(sleep_requested\) = true;)', sleep.split('else:', 1)[1])
-            self.assertEqual([step[0] or 'flag' for step in steps], ['flag', 'alert_dismiss', 'dim_display'], name)
-            self.assertIn('reason: "remote"', sleep, f'{name}: HA hears the alert was closed from Home Assistant')
-            apply = script(text, 'apply_screen_settings')
-            self.assertIn('if (id(display_dimmed) && !settings.standby_enabled && !id(sleep_requested)) {', apply,
-                          f'{name}: the minute tick must not undo a Sleep')
-            self.assertEqual(len(re.findall(r'id\(sleep_requested\) = true;', text)), 1, f'{name}: only the button starts a Sleep')
+            for gone in ('display_dimmed', 'sleep_requested', 'last_touch_ms', 'last_use_ms', 'touch_down', 'hand_standby',
+                         'dim_display', 'go_home_now', 'back_to_page_1_when_due', 'screen_power_wait', 'APPLY_BACKLIGHT'):
+                self.assertNotIn(gone, text, f'{name}: {gone} lived in the YAML before screen_standby.h')
 
-    def test_standby_has_one_way_in(self):
+    def test_which_wake_senses_someone(self):
+        # Home Assistant's Wake is a person or an automation that means it: never held. Its Motion is someone sensed, as
+        # a plugin's wake and a board that moved. The board's key is a person (screen_standby::key).
         for name, text in self.profiles.items():
-            # dim_display decides nothing itself: the interval asks for Auto standby, the Sleep button sets the flag.
-            dim = script(text, 'dim_display')
-            self.assertRegex(dim, r"then:\s+- lambda: 'id\(display_dimmed\) = true;'\s+- if:", name)
-            # The cards close first and the level comes after (firmware 0.29.0+): the screensaver opens the camera's full
-            # view itself in apply_screen_settings, and close_cards would close it again.
-            self.assertRegex(dim, r"return screen_settings::current\.home_on_standby;'\s+then:\s+- script\.execute: go_home\s+else:\s+"
-                                  r"- lambda: 'settings_screen::close\(\);'\s+- script\.execute: close_cards\s+(#[^\n]*\s+)?"
-                                  r"- lambda: 'id\(apply_screen_settings\)\.execute\(false\);'", name)
-            self.assertNotIn('lvgl.widget.hide', dim, f'{name}: cards close through close_cards')
-            callers = re.findall(r'script\.execute: dim_display', text)
-            self.assertEqual(len(callers), 2, f'{name}: the standby interval and the Sleep button')
-            interval = re.search(r'if \(!screen_settings::current\.standby_enabled\) return false;\s+'
-                                 r'if \(id\(display_dimmed\) \|\| id\(touch_down\) \|\| id\(calibration_active\) \|\| id\(alert_active\)\) return false;\s+'
-                                 # A doorbell's ring on the glass holds it lit too (module doorbell, docs/DOORBELL.md).
-                                 r'//[^\n]*\s+if \(runtime_tiles::doorbell_holds\(\)\) return false;\s+'
-                                 r'return \(millis\(\) - id\(last_touch_ms\)\) > [^\n]+\n\s+then:\s+- script\.execute: dim_display', text)
-            self.assertTrue(interval, f'{name}: the standby time only dims with Auto standby on')
+            self.assertIn('sensed: false', item(section(text, 'button'), 'name', 'Wake'), name)
+            self.assertIn('sensed: true', item(section(text, 'button'), 'name', 'Motion'), name)
+            self.assertIn('standby_by_hand', item(section(text, 'button'), 'name', 'Sleep'), name)
+            moved = script(text, 'board_moved')
+            if moved:
+                self.assertIn('id: wake_from', moved, name)
+                self.assertIn('sensed: true', moved, f'{name}: a board moved is a sensed wake')
+                self.assertNotIn('wake_button', moved, f'{name}: the board enters wake_from as what it is')
+
+    def test_what_holds_the_screen_lit(self):
+        # A calibration, an alert and a doorbell's ring (docs/DOORBELL.md) each keep the standby time, a standby by
+        # hand from the home key and Back to page 1 away: the three are what the standby asks the YAML for.
+        for name, text in self.profiles.items():
+            owned = re.search(r'glass\.owned = \[\]\(\) -> uint8_t \{(.*?)\};', text, re.S)
+            self.assertTrue(owned, name)
+            for guard, bit in (('id(calibration_active)', 'screen_standby::CALIBRATION'), ('alert_life::the().up()', 'screen_standby::ALERT'),
+                               ('runtime_tiles::doorbell_holds()', 'screen_standby::RING')):
+                self.assertIn(f'({guard} ? {bit} : 0)', owned[1], name)
 
     def test_every_card_closes_through_dismiss(self):
+        # One way to close every card: close_cards (standby) asks runtime_tiles::dismiss, which hides every card.
         for name, text in self.profiles.items():
             body = [line.strip() for line in script(text, 'close_cards').split('then:', 1)[1].splitlines()
                     if line.strip() and not line.strip().startswith('#')]
-            self.assertEqual(body, ["- lambda: 'if (runtime_tiles::dismiss) runtime_tiles::dismiss();'"], name)
+            self.assertEqual(body, ["- lambda: 'if (runtime_tiles::dismiss) runtime_tiles::dismiss();'"],
+                             f'{name}: close_cards closes through runtime_tiles::dismiss only')
             dismiss = re.search(r'runtime_tiles::dismiss = \[\]\(\) \{(.*?)\};', text, re.S)[1]
-            # hide_detail() closes every computed card, the light and fan card among them since 0.2.80, and the colour
-            # card since it is one of them (app 0.4.86).
-            self.assertIn('runtime_tiles::hide_detail();', dismiss, name)
-        runtime = (ROOT / 'components/smart_display/runtime_tiles.h').read_text()
-        hide = runtime[runtime.index('inline void hide_detail(){'):runtime.index('inline int slider_value(')]
-        self.assertIn('colour_close();', hide)
+            self.assertIn('runtime_tiles::hide_detail();', dismiss, f'{name}: dismiss closes every card through hide_detail')
 
     def test_the_backlight_belongs_to_the_firmware(self):
         for name, text in self.profiles.items():
             light = item(section(text, 'light'), 'id', 'back_light')
-            self.assertIn('platform: monochromatic', light, name)
-            self.assertIn('internal: true', light, f'{name}: Home Assistant would fight standby over it')
-
-    def test_the_flag_starts_false_and_is_never_saved(self):
-        for name, text in self.profiles.items():
-            flag = item(section(text, 'globals'), 'id', 'sleep_requested')
-            self.assertIn('type: bool', flag, name)
-            self.assertIn('restore_value: no', flag, name)
-            self.assertIn("initial_value: 'false'", flag, name)
-
-    def test_only_a_tap_wake_or_an_alert_end_a_sleep(self):
-        for name, text in self.profiles.items():
-            # wake_display is the one place that clears the flag; Auto standby, from any side, leaves it alone.
-            self.assertEqual(len(re.findall(r'id\(sleep_requested\) = false;', text)), 1, name)
-            self.assertIn('id(sleep_requested) = false;', script(text, 'wake_display'), name)
-            self.assertNotIn('sleep_requested', item(section(text, 'switch'), 'name', 'Auto standby'), name)
+            self.assertIn('internal: true', light, f'{name}: keep back_light internal, or Home Assistant fights standby over it')
 
 
 if __name__ == '__main__':

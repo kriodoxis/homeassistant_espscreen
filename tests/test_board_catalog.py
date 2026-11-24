@@ -13,8 +13,6 @@ import tempfile
 import unittest
 from pathlib import Path
 
-import yaml
-
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
 sys.path.insert(0, str(ROOT / 'screen_manager' / 'app'))
@@ -48,11 +46,9 @@ class Catalog(unittest.TestCase):
                           tab5['camera']),
                          ('M5Stack Tab5', 'Tab5', 5.0, 'ST7121/ST7123', 'new', False, True))
         # Two controllers under one name (GitHub #79, #240): New screen asks, and the ST7121 stays the default.
+        # The board file's own value comes first (every board, below), and its display reads the choice
+        # (tests/test_override_contract.py, KNOBS); the two models and the touch they share are docs/TAB5.md.
         self.assertEqual(tab5['choices'], {'DISPLAY_MODEL': ['ST7121', 'ST7123']})
-        source = profiles.BOARDS['tab5'].read_text()
-        self.assertIn('model: M5STACK-TAB5-${DISPLAY_MODEL}', source)
-        self.assertIn('DISPLAY_MODEL: "ST7121"', source)
-        self.assertIn('platform: st7123', source)
 
     def test_what_the_files_say_is_worked_out_not_written(self):
         for board in profiles.CATALOG:
@@ -65,6 +61,10 @@ class Catalog(unittest.TestCase):
             chain = [path.name for path in profiles.chain(profiles.BOARDS[board])]
             self.assertEqual(catalog['calibrate'], 'resistive-touch.yaml' in chain, board)
             self.assertIn(catalog['status'], ('stable', 'new', 'experimental'), board)
+            # Only a stable board is recommended, the pick New screen shows first (boards.yaml `recommended`).
+            self.assertIs(type(catalog['recommended']), bool, board)
+            if catalog['recommended']:
+                self.assertEqual(catalog['status'], 'stable', board)
             for key, options in catalog['choices'].items():
                 self.assertEqual(options[0], values[key].strip('"'), f'{board} {key}: the board file\'s own value first')
 
@@ -82,28 +82,22 @@ class Catalog(unittest.TestCase):
                 else:
                     self.assertEqual(values, {'SCREEN_MAX_BAR_ITEMS': 6, 'SCREEN_MAX_TILES': 64, 'SCREEN_MAX_PAGES': 8})
 
-    def test_tab5_exposes_its_battery_level_from_the_ina226(self):
-        class IncludeLoader(yaml.SafeLoader):
-            pass
-
-        IncludeLoader.add_constructor('!include', lambda loader, node: loader.construct_scalar(node))
-        hardware = yaml.load((ROOT / 'packages/hardware/m5stack-tab5.yaml').read_text(), Loader=IncludeLoader)
-        ina226 = next(sensor for sensor in hardware['sensor'] if sensor.get('platform') == 'ina226')
-        level = next(sensor for sensor in hardware['sensor'] if sensor.get('name') == 'Battery Level')
-
-        self.assertEqual((ina226['address'], ina226['i2c_id']), (0x41, 'tab5_bus'))
-        self.assertEqual(ina226['bus_voltage']['name'], 'Battery Voltage')
-        self.assertEqual(ina226['bus_voltage']['entity_category'], 'diagnostic')
-        self.assertEqual((level['device_class'], level['state_class'], level['unit_of_measurement']),
-                         ('battery', 'measurement', '%'))
-        self.assertEqual(level['filters'][1]['calibrate_linear']['datapoints'][0], '6.00 -> 0')
-        self.assertEqual(level['filters'][1]['calibrate_linear']['datapoints'][-1], '8.40 -> 100')
-        # Its INA226 reads the charging current negative (#234): Battery Charging looks at the copy with the sign turned.
-        current_in = next(sensor for sensor in hardware['sensor'] if sensor.get('id') == 'tab5_battery_current_in')
-        charging = next(sensor for sensor in hardware['binary_sensor'] if sensor.get('id') == 'tab5_battery_charging')
-        self.assertEqual((current_in['platform'], current_in['source_id']), ('copy', 'tab5_battery_current'))
-        self.assertEqual(current_in['filters'], [{'multiply': -1}])
-        self.assertEqual(charging['sensor_id'], 'tab5_battery_current_in')
+    def test_a_battery_level_is_a_percentage_the_firmware_can_find(self):
+        """docs/BATTERY.md: the firmware takes the first sensor in the `battery` device class as the level, in percent, and
+        the editor offers the top bar's battery on the boards whose files have one (profiles.battery). The Tab5's INA226,
+        its address and its pack's curve are docs/TAB5.md and docs/BATTERY.md, "The M5Stack Tab5"."""
+        for board in profiles.BOARDS:
+            text = profiles.resolved(f'packages/{board}.yaml')
+            levels = [block for block in re.split(r'(?m)^  - platform: ', text)
+                      if re.search(r'(?m)^\s+device_class: battery\s*$', block)]
+            with self.subTest(board=board):
+                self.assertEqual(bool(levels), SHAPES[board]['battery'],
+                                 'boards.json `battery` follows a sensor in the battery device class (generate_board_shapes.py)')
+                for block in levels:
+                    self.assertRegex(block, r'(?m)^\s+unit_of_measurement: "?%"?\s*$',
+                                     'a battery level is in percent: give it unit_of_measurement "%"')
+                    self.assertRegex(block, r'(?m)^\s+state_class: measurement\s*$',
+                                     'a battery level is a measurement: give it state_class measurement')
 
 
 class Choices(unittest.TestCase):
@@ -138,6 +132,10 @@ class Choices(unittest.TestCase):
         for grid in ({'columns': 4, 'rows': 3}, {'columns': 0, 'rows': 3}, {'columns': 2}, {'columns': '2', 'rows': 3}, [2, 3]):
             with self.assertRaises(ValueError, msg=grid):
                 core.installation_yaml({'board': 'cyd', 'name': 'hall', 'friendly_name': 'Hall', 'grid': grid})
+        # A name with " or \ would break the C++ strings it goes into (#453): refused before a build.
+        for name in ('Guition 4"', 'Hall \\ kitchen'):
+            with self.assertRaises(ValueError, msg=name):
+                core.installation_yaml({'board': 'cyd', 'name': 'hall', 'friendly_name': name})
         # Offline, the screen's own YAML says the grid it starts with, the way it hangs: the app counts its cells on it.
         import firmware
         self.assertEqual(firmware.profile_meta(four)['built_grid'], {'rows': 4})
@@ -217,9 +215,12 @@ class NoBoardInTheEditor(unittest.TestCase):
 
     def test_new_screen_and_the_screen_list_name_no_board(self):
         words = [board for board in profiles.CATALOG] + sorted({entry['name'] for entry in profiles.CATALOG.values()})
-        for name in ('components/InstallerView.vue', 'components/install/BoardStep.vue', 'components/install/NameStep.vue',
-                     'components/install/WayStep.vue', 'components/install/Progress.vue', 'composables/useInstaller.ts',
-                     'components/Sidebar.vue', 'model/boards.ts', 'model/installer.ts'):
+        # New screen is every file of components/install/ (one step a file since app 0.4.103, so the list follows the
+        # folder rather than naming the steps of the day), with the view, the composable and the models behind it.
+        install = sorted(f'components/install/{path.name}' for path in (ROOT / 'web/src/components/install').glob('*.vue'))
+        self.assertGreaterEqual(len(install), 5)
+        for name in ['components/InstallerView.vue', *install, 'composables/useInstaller.ts',
+                     'components/Sidebar.vue', 'model/boards.ts', 'model/installer.ts']:
             text = (ROOT / 'web/src' / name).read_text()
             for word in words:
                 self.assertIsNone(re.search(rf'["\'`]{re.escape(word)}["\'`]|\b{re.escape(word)}\b(?=\s*[:=])', text, re.I),

@@ -37,7 +37,7 @@ namespace tessera {
 // minor after which an older plugin would still build but work wrongly (0.4, where on_tick changed its meaning): such a
 // plugin is refused in one sentence. What each minor brought and took away: the plugins repository's
 // docs/FIRMWARE_API.md, "Versions".
-constexpr uint8_t PLUGIN_API_MAJOR = 0, PLUGIN_API_MINOR = 24;
+constexpr uint8_t PLUGIN_API_MAJOR = 0, PLUGIN_API_MINOR = 29;
 
 // The screen's fixed fonts, largest first. A tile takes the largest that fits; a plugin brings no font of its own.
 // VALUE is the big number of a watch card, HEADLINE a card's large words, TITLE a card's name, BODY its second line,
@@ -45,7 +45,13 @@ constexpr uint8_t PLUGIN_API_MAJOR = 0, PLUGIN_API_MINOR = 24;
 // letters (Latin with the accents of the screen's languages, digits and common signs); the icon fonts have Tessera's
 // icon set only. DIGITS (0.9) is the largest: a climate card's setpoint, with the digits and - . , ° % alone, so a
 // tile takes it only for a value ui::covers() and steps down to VALUE for any other (a word, a unit, a letter).
-enum class Font : uint8_t { VALUE, HEADLINE, TITLE, BODY_LARGE, BODY, ICON, ICON_SMALL, DIGITS };
+// Larger still (0.29), the digits of Tessera's own clocks, in every build already, so a plugin's clock pays nothing for
+// them: DIGITS_LARGE fills half the page's width with two digits (the flip clock's step: 73 px on a CYD, 150 on a
+// 4-inch, 270 on a 10-inch), DIGITS_PAGE is the largest the page takes for "00:00" (the bedside clock's step; on a
+// board where that is not a fifth larger, the CYD and the 4-inch boards among them, it is DIGITS_LARGE itself). Both
+// hold the digits and the colon alone: check a text with ui::covers(), and measure it with ui::text_width() before you
+// take one (a step down to DIGITS where it is too wide). Neither holds a space, a letter or a sign.
+enum class Font : uint8_t { VALUE, HEADLINE, TITLE, BODY_LARGE, BODY, ICON, ICON_SMALL, DIGITS, DIGITS_LARGE, DIGITS_PAGE };
 // What came of a place's picture (0.17, on_picture): SHOWN, it is on its place; NONE, the app has no picture at that
 // address now (it asks again later, each time after a longer while); FAILED, it did not come (the download broke off).
 enum class PictureState : uint8_t { SHOWN, NONE, FAILED };
@@ -64,6 +70,7 @@ struct TileContext {
   // or for a choice of picks, {"value": "...", "label": "..."} with the words the person saw in the list; a choice found
   // by searching (`search`) without `multiple` is one pick (or "" while none is chosen).
   JsonObjectConst options;
+  bool full;                 // the tile is the whole page (0.25): `columns` and `rows` are then the screen's grid
 };
 
 // Memory for what a plugin keeps (0.10). The memory inside the chip is small and Wi-Fi needs it; a board with PSRAM has
@@ -189,6 +196,8 @@ class Popup : public InPsram {
   // It goes by itself (its close key, a tap beside it, the screen going dark, an update, an alert, another plugin's
   // popup): the last call before it is deleted. Not when its own plugin closed it or showed another.
   virtual void on_dismiss() {}
+  // What came of a place's picture (0.27, a popup with an id of the manifest's `popups`), as a card's on_picture.
+  virtual void on_picture(lv_obj_t *place, PictureState state) {}
 };
 
 // A tap action on a tile of Home Assistant's own (a thermostat that opens the plugin's schedule): what it was tapped on.
@@ -254,6 +263,13 @@ enum class Tone : uint8_t { NORMAL, ACCENT, BUSY, ALERT, GOOD };
 // How a picture fills its place (0.10): COVER fills the place and cuts away what is over (a poster in a poster's
 // frame), CONTAIN shows the whole picture within it, on the card's own colour (a logo, a map).
 enum class Fit : uint8_t { COVER, CONTAIN };
+
+// A card's own colour (0.26): the named colours a person can give any tile in the editor (theme::SWATCHES). Each is a
+// pastel in the light look and a deep shade of the same hue in the dark one, chosen so the screen's ink reads on it.
+// NONE is the card as the person set it: plain, or the colour they chose.
+// INSTRUMENT (0.28): the ground of the instrument roles, dark in both looks, for a tile that is an instrument's face
+// edge to edge (a radar, a night sky, a clock face); draw on it with theme::INSTRUMENT_INK and its kin.
+enum class CardColor : uint8_t { NONE, RED, ORANGE, YELLOW, GREEN, MINT, BLUE, PURPLE, PINK, GRAY, INSTRUMENT };
 // How a picture turns in its place (0.10), as the covers beside the middle one of a cover flow turn to face it: the app
 // draws the whole picture in perspective within the place, its near edge the place's height and its far edge 70 % of
 // it. LEFT faces the left (its left edge far: a cover right of the middle), RIGHT faces the right (a cover left of it).
@@ -480,6 +496,10 @@ void close_card();
 // now. A dark screen lights up first, as wake() does: a popup is something to see. Call it from the plugin's own calls
 // (the screen's loop). False when nothing could show (`make` returned none).
 bool show_popup(const Plugin *plugin, std::function<Popup *()> make, PopupWidth width = PopupWidth::ALERT);
+// The same with the popup's id of the manifest's `popups` (0.27): such a popup may show pictures (ui::picture and
+// ui::set_picture in its open() and later calls), as many as the manifest's `pictures` of it, from the hosts of
+// permissions.network. A popup shown without an id shows none: its places stay blocks.
+bool show_popup(const Plugin *plugin, const char *popup, std::function<Popup *()> make, PopupWidth width = PopupWidth::ALERT);
 // Close this plugin's popup, if it shows one (it hears no on_dismiss).
 void close_popup(const Plugin *plugin);
 // Whether a popup of this plugin shows.
@@ -510,7 +530,8 @@ void refresh();
 // page 1 keeps counting from the last touch, so waking on every motion holds no card or page 2 up. The log names the
 // plugin. Call it from the plugin's own calls (the screen's loop, as every call here), never from a task of its own,
 // and at most once a second or two while what it senses goes on. A plugin that wakes the screen by what it senses has
-// a setting for it, off until someone turns it on (docs/PLUGINS.md, "Waking the screen").
+// a setting for it, off until someone turns it on (docs/PLUGINS.md, "Waking the screen"). After a standby someone asked
+// for by hand (firmware 0.64.0+) it lights the screen only after a minute without one: the person is walking away.
 void wake(const Plugin *plugin);
 // What a plugin captures on the screen itself (0.17): its own camera, watched (CAMERA: someone sees what it sees), or
 // for sensing alone (SENSING, 0.20: a light level, motion, and no picture leaves the screen or reaches a person), or
@@ -521,7 +542,7 @@ enum class Capture : uint8_t { CAMERA, SENSING, SOUND };
 // everything, while anything uses the camera, and no plugin or setting can take it away: solid while anyone watches
 // (a plugin's CAMERA, or Home Assistant taking pictures or a stream of the camera, `ts_camera`, which the core sees by
 // itself), a ring while the camera only senses (SENSING, 0.20). What a plugin does on the screen it must say here.
-// SOUND (0.23) changes no dot: the screen squeezes its live tiles to a quarter while someone hears the microphone
+// SOUND (0.23) changes no dot: the screen squeezes its live tiles to half at least while someone hears the microphone
 // (pressure.h, heard), since a conversation goes before the tiles on the sending side too; on a reTerminal D1001 four
 // live tiles beside its own video stalled the uplink and the sound reached its viewer in bursts a second late.
 // Call it from the plugin's own calls (the screen's loop).
@@ -579,6 +600,17 @@ inline bool open(Side side, Role role) { return audio_owner::the().would_grant(s
 // Who holds a side now (held() says whether anyone does).
 inline bool held(Side side) { return audio_owner::the().held(side); }
 inline Role holder(Side side) { return audio_owner::the().holder(side); }
+// A sound louder than the screen's own volume (0.29, volume_lift.h; docs/SOUNDS.md, "Louder than the screen"), as an
+// alarm clock rings: raise_volume sets the speaker to at least `volume`, on the same 0 to 1 as the screen's volume in
+// Home Assistant (1 is its 100 %), and restore_volume puts back the screen's own volume after the sound. Never quieter:
+// where the screen stands louder already, it stays there. Again with another `volume` changes the plugin's level. A
+// call's ring lifts the speaker the same way, and the screen keeps what its volume was in one place, so the two never
+// put back each other's level. Nothing of it is stored: a restart or an update while it rings comes back at the screen's
+// own volume, and an update takes every lift down first. Someone who moves the volume while it is raised keeps what
+// they chose. Call restore_volume when the sound ends, is stopped, or the plugin hears `lost`. A muted screen stays
+// muted. False on a board without a speaker, or with four lifts up. Call them from the plugin's own calls.
+bool raise_volume(const Plugin *plugin, float volume);
+void restore_volume(const Plugin *plugin);
 }  // namespace audio
 // A Home Assistant action on an entity, as a tile's tap sends it: action("light.toggle", entity), or with fields of any
 // JSON type, a JSON object of up to 16 fields, together at most 1 KB:
@@ -632,6 +664,20 @@ void set_fill(lv_obj_t *block, Tone tone, theme::Role normal);
 lv_color_t tone_color(Tone tone, theme::Role normal);
 // A rounded block (a line number's badge, a bar): no border, the radius of a key.
 lv_obj_t *block(lv_obj_t *parent, theme::Role fill);
+// The tile's card in a colour of its own (0.26): the whole card, its edge and its shade under a finger, in both looks,
+// over the colour the person chose for the tile in the editor; CardColor::NONE gives the card back to that choice. For a
+// tile whose colour says something (a level that is fine or off, the bin that goes out, a timer that ran out). Call it
+// in a call of the tile (create, on_state, on_tick, on_theme, on_tap): it colours the card of that tile, costs nothing
+// when the colour is the one it has, and lasts until the tile says otherwise or leaves the card. A tile whose
+// background the person set to None has no card, and stays so. Outside a tile's call it does nothing.
+void set_card_color(CardColor color);
+// The colour of the card under the tile as it is drawn now, in a call of the tile: its own (set_card_color), else the
+// person's, else the plain card; the page's colour for a tile without a card. For a part that has to go with the card:
+// a soft block is lv_color_mix(ui::color(theme::INK), ui::card_color(), 26), never a number. In a call of a card, a
+// popup or a screensaver it is the plain card's colour.
+lv_color_t card_color();
+// A named card colour as this look draws it; CardColor::NONE is the plain card.
+lv_color_t card_color(CardColor color);
 // The UTF-8 of an icon of Tessera's set by its codepoint (0xF0B5E), for a label in Font::ICON or ICON_SMALL.
 std::string icon(uint32_t codepoint);
 // A part of a screensaver a finger may tap without waking the screen (0.14): its taps go to Saver::on_tap (and a hold to
@@ -685,8 +731,14 @@ void slide_pictures(int dx, uint32_t ms = 300);
 // still, since the screen draws the part again in every frame while it moves. Keep a part that moves small: it is drawn
 // anew each frame, and a part that spins or ripples through a layer of its own.
 void animate(lv_obj_t *part, Motion motion, uint32_t period_ms, uint32_t delay_ms = 0);
-// The part stops moving and shows as it was laid out: whole, upright, at its size.
+// The part stops moving and shows as it was laid out: whole, at its size, at its own turn (ui::rotate) or upright.
 void still(lv_obj_t *part);
+// A part turned by `degrees` clockwise around its middle (0.27): a plane's icon along its course, a compass needle, a
+// wind arrow. 0 is as it is drawn; the same angle again costs nothing, so call it on every tick. LVGL draws a turned
+// part on a layer of its own each time it changes, so turn small parts (an icon, a short line), not a whole card. The
+// turn holds through ui::animate and ui::still: a part that pulses or ripples keeps pointing where it was turned, one
+// that spins turns from there, and a turn given while it spins counts from its next frame.
+void rotate(lv_obj_t *part, float degrees);
 // A tile's place shows its camera live (0.17): a place whose address is `camera:<entity>` of the tile's own entity
 // streams on a screen that streams (the ESP32-P4 boards) while it is on the glass, the page stands still and nothing
 // lies over it, exactly as a camera tile set to Live does (docs/PICTURES.md); everywhere else, and until its first live

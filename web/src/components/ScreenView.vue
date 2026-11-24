@@ -1,17 +1,19 @@
 <script setup lang="ts">
 // One screen: the head with its status, the Layout and Settings tabs, and the inspector in a column on the right.
 import { useEventListener, useFileDialog } from "@vueuse/core";
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import { t } from "../i18n";
-import { needsUpdate } from "../model/screen-status";
+import { needsUpdate, restarting, restartingText } from "../model/screen-status";
 import { isEditableTarget } from "../composables/isEditableTarget";
 import { useConfirm } from "../composables/useConfirm";
+import LayoutBotKey from "./LayoutBotKey.vue";
 import LayoutView from "./LayoutView.vue";
 import SettingsTab from "./SettingsTab.vue";
 import ScreenPluginsTab from "./ScreenPluginsTab.vue";
 import Drawer from "./Drawer.vue";
 import FeedbackPanel from "./FeedbackPanel.vue";
 import PluginRatingCard from "./PluginRatingCard.vue";
+import PluginSuggestCard from "./PluginSuggestCard.vue";
 import Icon from "./ui/Icon.vue";
 import UiMenu from "./ui/UiMenu.vue";
 import UiMenuItem from "./ui/UiMenuItem.vue";
@@ -30,6 +32,10 @@ import { useDocumentStore } from "../stores/document";
 import { useInspectorStore } from "../stores/inspector";
 
 const ui = useUiStore();
+// A part of the Settings tab is in the address (`?settings=<part>`): an address with one opens the tab, and leaving the
+// tab takes the part out of the address again, in place, so Back does not walk through it.
+watch(() => ui.screenSettingsPart, (part) => { if (part) ui.tab = "settings"; }, { immediate: true });
+watch(() => ui.tab, (tab) => { if (tab !== "settings" && ui.screenSettingsPart) ui.openScreenSettings(null, { replace: true }); });
 const builds = useBuildsStore();
 const plugins = usePluginsStore();
 const scr = useScreenStore();
@@ -41,10 +47,12 @@ const insp = useInspectorStore();
 const screen = computed(() => scr.currentScreen!);
 const statusText = computed(() => screen.value.virtual ? t("editor.preview.virtual") : screen.value.online
   ? `${screen.value.delivery} · ${screen.value.status}`
-  : t("editor.screen_view.offline"));
+  : restarting(screen.value, builds.building(screen.value)) ? restartingText() : t("editor.screen_view.offline"));
 // The head says whether the screen is there in one word; the details of its delivery stay in the chip's tooltip.
-const statusKind = computed(() => !screen.value.online ? "off" : screen.value.in_sync ? "good" : "update");
-const statusWord = computed(() => !screen.value.online ? t("editor.common.offline") : screen.value.in_sync ? t("editor.common.online") : t("editor.screen_view.sending"));
+// A screen away because its update restarts it says so (model/screen-status.ts restarting), not "offline".
+const away = computed(() => !screen.value.online && !restarting(screen.value, builds.building(screen.value)));
+const statusKind = computed(() => away.value ? "off" : !screen.value.online ? "update" : screen.value.in_sync ? "good" : "update");
+const statusWord = computed(() => away.value ? t("editor.common.offline") : !screen.value.online ? t("editor.update.restarting_short") : screen.value.in_sync ? t("editor.common.online") : t("editor.screen_view.sending"));
 const updateReady = computed(() => needsUpdate(screen.value) && screen.value.online && screen.value.update?.profile && screen.value.update?.host);
 const others = computed(() => inv.inventory.screens.filter((s) => s.id !== screen.value.id && s.layout?.tiles?.length));
 function closeMenu() { ui.menuOpen = false; }
@@ -81,7 +89,7 @@ function phoneBack() {
   if (ui.tab !== "layout") { ui.tab = "layout"; return; }
   session.goHome();
 }
-const phoneStatus = computed(() => !screen.value.online ? t("editor.common.offline")
+const phoneStatus = computed(() => away.value ? t("editor.common.offline") : !screen.value.online ? t("editor.update.restarting_short")
   : doc.dirty ? t("editor.phone.not_sent") : screen.value.in_sync ? t("editor.phone.on_screen") : t("editor.screen_view.sending"));
 function phoneSettings() { closeMenu(); insp.closeInspector(); ui.tab = "settings"; }
 async function phoneRename() {
@@ -221,6 +229,8 @@ useEventListener(document, "keydown", onKey);
   <FeedbackPanel v-if="screen.feedback?.available" :key="`card-${screen.id}`" :screen="screen" mode="card" />
   <!-- Stars for a plugin it runs (docs/PLUGINS.md, "Likes, ratings and counting"), never at once with the card above. -->
   <PluginRatingCard v-if="inv.pluginsEnabled" :key="`rate-${screen.id}`" :screen="screen" />
+  <!-- A plugin for hardware its board has (docs/PLUGINS.md, "Plugins a board starts with"), asked once. -->
+  <PluginSuggestCard v-if="inv.pluginsEnabled" :key="`suggest-${screen.id}`" :screen="screen" />
   <div class="body" id="body">
     <div class="work">
       <LayoutView v-if="ui.tab === 'layout'" />
@@ -229,8 +239,10 @@ useEventListener(document, "keydown", onKey);
     </div>
     <Drawer />
   </div>
-  <!-- The phone's one button (app 0.4.40): add a tile, and once something changed, send it to the screen. -->
+  <!-- The phone's one button (app 0.4.40): add a tile, and once something changed, send it to the screen. Layoutbot's key
+       stands before it (docs/LAYOUTBOT.md). -->
   <div v-if="ui.phone && ui.tab === 'layout' && doc.layout" class="phone-dock">
+    <LayoutBotKey v-if="!ui.previewOpen" docked />
     <button type="button" id="phone-add" class="btn" :class="doc.dirty ? 'soft square' : 'primary'" :disabled="full"
       :aria-label="t('editor.phone.add_tile')" :title="full ? t('editor.library.full', doc.tileLimit) : ''" @click="phoneAdd">
       <Icon name="plus" /><span v-if="!doc.dirty">{{ t("editor.phone.add_tile") }}</span>

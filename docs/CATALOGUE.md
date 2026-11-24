@@ -78,12 +78,14 @@ controls:                     # direct controls on a card; the first is the defa
     one_row: setpoint                     # what a card one row high draws instead
     room: {feature: cover_rows}           # a screen with this feature lays the control out by its card's room (cover_tile.h)
 grow: [setpoint_mode]         # what a tile that grows suggests first, the richest first (see "A tile that grows")
+showcase: graph               # the face the library's Tiles view shows it in from two cells up (see "The library's tiles")
 inline:                       # the small slider beside the name
   needs: {actions: [{action: light.turn_on, field: brightness_pct}]}
 toggle: {actions: [lock.lock]}   # what On / off as a tap needs; without this key: <domain>.toggle listed by Home Assistant
 taps: [run]                   # taps of this type beyond every tile's
 guards: [confirm, lock_only]  # a lock's guard choices
 tilt_open: ['100', '50']      # where a cover's slats stand open, the first the default (Home Assistant's rule)
+send_after: ['off', '4', ...]  # the code lengths an alarm may send itself after, the first the default (Events, Alarm; docs/ALARM_PANEL.md)
 picture: {fit: [...], overlay: [...], refresh: [...]}   # how a live picture sits on its tile
 map: {framing: [...], distance: [...], ...}             # a map card's choices, the first of each the default; needs the map display (docs/MAP.md)
 energy: {flow: [dots, lines]}  # the energy card's choices (screen.yaml only), the first the default (docs/ENERGY.md)
@@ -94,7 +96,7 @@ favorite:                     # what a favourite sets as it starts, each where t
   shuffle: {needs: {actions: [media_player.shuffle_set]}}
 ```
 
-A type's `grow` names only its own controls. A control may also say `sizes: {full: false}` (not on a full-page card), and the keys of an option are `needs`,
+A type's `grow` names only its own controls, and its `showcase` only one of its own displays. A control may also say `sizes: {full: false}` (not on a full-page card), and the keys of an option are `needs`,
 `screen`, `sizes`, `wide`, `rows`, `of`, `one_row`, `fallback`, `range` and `room`; `tools/generate_catalogue.py` refuses any
 other key (`TOP`, `OPTION`). A `keypad` has up, down, left, right and OK for every integration it names and the other
 keys (`back`, `home`, `play`, `volume_up`, `volume_down`, `mute`) where the remote has them, and every command must be
@@ -151,6 +153,20 @@ Which set comes first follows the type's `grow` list, then its `controls` in the
 
 `web/src/model/tile-options.ts` (`controlSets`, `growthOf`) holds the rule, `resizeTile` in `web/src/editor/tiles.ts`
 writes the suggestion with the new size as one step of undo, and `web/src/components/GrowTip.vue` is the tip.
+
+## The library's tiles
+
+The library's Tiles view (docs/PAGES.md, "The library") shows every entity as the tiles it can be, at up to three
+sizes, each as rich as the screen draws it there:
+
+- From two cells up a tile takes the face its type names in `showcase` (a sensor's curve, a player's album cover, a
+  camera's live picture), where the inspector would offer it for this entity on this board and the save takes it.
+- Of the control sets that fit the size, it takes the one with the most parts (a thermostat's temperature with its
+  modes, a light's brightness with its presets), the type's `grow` order deciding between equals.
+- A type without `showcase` keeps its usual face. A weather has none yet: the editor's mockup does not draw a forecast.
+
+`web/src/editor/library-tiles.ts` holds the rule. It only chooses among what the catalogue and the add-on's rules
+already offer, so it adds no capability of its own.
 
 ## Adding an entity type
 

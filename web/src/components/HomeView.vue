@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // The add-on's home (app 0.4.0): every screen of the house with its home page as it stands on the glass right now, the
 // page shown when no screen is chosen and where the logo leads. A click on a screen opens it in the editor.
-import { computed, onMounted, reactive } from "vue";
+import { computed, onMounted, reactive, useTemplateRef } from "vue";
 import { t } from "../i18n";
 import { barMetricsFor } from "../model/topbar";
 import { boardTitle } from "../model/boards";
@@ -14,6 +14,7 @@ import { previewShapeOf } from "../model/preview";
 import type { Screen } from "../types";
 import FirmwarePreview from "./FirmwarePreview.vue";
 import DonateCard from "./DonateCard.vue";
+import FundingCard from "./FundingCard.vue";
 import TileCard from "./TileCard.vue";
 import TopbarSvg from "./TopbarSvg.vue";
 import Icon from "./ui/Icon.vue";
@@ -29,6 +30,8 @@ import { useSessionStore } from "../stores/session";
 import { useInventoryStore } from "../stores/inventory";
 
 const ui = useUiStore();
+// The funding request first; the support card waits until it is put away.
+const funding = useTemplateRef<InstanceType<typeof FundingCard>>("funding");
 const entities = useEntitiesStore();
 const scr = useScreenStore();
 const session = useSessionStore();
@@ -78,12 +81,12 @@ onMounted(entities.loadOverview);
     </header>
     <BrokenNotice />
     <div class="home-grid">
-      <div v-for="{ screen, view, live, layout } in views" :key="screen.id" role="button" tabindex="0" class="home-card" :class="{ away: !screen.online }"
+      <div v-for="{ screen, view, live, layout } in views" :key="screen.id" role="button" tabindex="0" class="home-card" :class="{ away: !screen.online && !builds.isBuilding(screen) }"
         :aria-label="t('editor.home.open', { name: screen.name })" @click="session.select(screen.id)" @keydown.enter.prevent="session.select(screen.id)" @keydown.space.prevent="session.select(screen.id)">
         <span class="home-stage">
           <span v-if="live && layout && !failed.has(screen.id)" class="home-live" :style="{ width: liveWidth(live) }" aria-hidden="true">
             <FirmwarePreview :key="`${screen.id}:${JSON.stringify(live)}`" :width="live.width" :height="live.height" :dpi="live.dpi"
-              :columns="live.columns" :rows="live.rows" :layout="layout" :pictures="drawsPictures(screen)" :dark="screen.settings?.values?.dark_mode === true" still
+              :columns="live.columns" :rows="live.rows" :layout="layout" :pictures="drawsPictures(screen)" :dark="screen.settings?.values?.dark_mode === true" :plugins-of="screen" still
               @ready="drawn.add(screen.id)" @failed="failed.add(screen.id)" />
           </span>
           <span v-if="view && !(live && layout && drawn.has(screen.id) && !failed.has(screen.id))" class="home-glass"
@@ -98,7 +101,8 @@ onMounted(entities.loadOverview);
               </span>
             </span>
           </span>
-          <span v-else class="home-empty"><Icon name="view-dashboard-outline" />{{ t("editor.home.no_layout") }}</span>
+          <!-- Only a screen with nothing to draw: not the mockup, and not the firmware's own preview that took its place. -->
+          <span v-if="!view && !(live && layout && !failed.has(screen.id))" class="home-empty"><Icon name="view-dashboard-outline" />{{ t("editor.home.no_layout") }}</span>
         </span>
         <span class="home-foot">
           <ProgressRing v-if="building(screen)" class="home-ring" :size="16" :percent="builds.buildProgress(screen)?.percent ?? 0"
@@ -120,7 +124,8 @@ onMounted(entities.loadOverview);
       </div>
       <button type="button" class="home-new" @click="ui.go('#new-screen')"><Icon name="plus" class="home-plus" />{{ t("editor.nav.new_screen") }}</button>
     </div>
-    <DonateCard />
+    <FundingCard ref="funding" />
+    <DonateCard v-if="funding && !funding.open" />
   </section>
 </template>
 
