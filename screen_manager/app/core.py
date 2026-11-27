@@ -176,7 +176,7 @@ def our_ref(value):
 # The shared firmware of this app release: packages/core.yaml's SCREEN_FIRMWARE_VERSION, what every board builds
 # unless its own board file went ahead with a fix for that board alone (firmware_target, docs/BOARD_RELEASES.md). The
 # middle number is the core: the feature gates below name a shared X.Y.0, so a feature always ships with a new core.
-FIRMWARE_VERSION = '0.64.0'
+FIRMWARE_VERSION = '0.68.0'
 # The Auto standby switch a screen offers Home Assistant automations.
 AUTO_STANDBY_MIN_FIRMWARE = '0.2.41'
 # The settings page the screen opens itself, and the screen.settings tile that opens it.
@@ -856,6 +856,10 @@ def tile_limit(version, grid=DEFAULT_GRID):
     return grid.legacy_pages * grid.slots if version >= FULL_PAGE_MIN_FIRMWARE else LEGACY_MAX_TILES if version >= TWENTY_TILES_MIN_FIRMWARE else FIRST_MAX_TILES
 
 CLIMATE_RANGE_MIN_FIRMWARE = (0, 19, 0)
+# The parts a thermostat tile's own line may say, in the order it says them, and the ones it says without a choice
+# (firmware 0.68.0, tile_controls::climate_tile_line; web/src/model/tile-text.ts CLIMATE_PARTS).
+CLIMATE_LINE_PARTS = ('mode', 'action', 'target', 'now')
+CLIMATE_LINE_DEFAULT = 'show:mode,target,now'
 
 def tile_cost(tile, memory):
     """What one tile takes inside a screen's chip (firmware 0.34.0+, docs/TILE_MEMORY.md), by the tile catalogue's
@@ -2101,7 +2105,16 @@ def validate_layout(data, stored=False, grid=DEFAULT_GRID):
                     words = sub[5:].strip()
                     sub = f'text:{words}' if words else 'none'
                     options = {**options, 'sub': sub}
-                if sub not in ('auto', 'none') and not re.fullmatch(r'text:.+|attr:[a-z_0-9]+', sub):
+                # A thermostat's own line names the parts it says (firmware 0.68.0, tile_controls::climate_tile_line),
+                # kept in one order; its mode, target and the room's temperature are the line it says without a choice.
+                if sub.startswith('show:') and domain == 'climate':
+                    parts = sub[5:].split(',') if sub[5:] else []
+                    if any(part not in CLIMATE_LINE_PARTS for part in parts):
+                        raise ValueError(t('addon.errors.layout.invalid_setting', setting='sub'))
+                    sub = 'show:' + ','.join(part for part in CLIMATE_LINE_PARTS if part in parts)
+                    sub = 'auto' if sub == CLIMATE_LINE_DEFAULT else sub
+                    options = {**options, 'sub': sub}
+                elif sub not in ('auto', 'none') and not re.fullmatch(r'text:.+|attr:[a-z_0-9]+', sub):
                     raise ValueError(t('addon.errors.layout.invalid_setting', setting='sub'))
                 if sub == 'auto':
                     options = {k: v for k, v in options.items() if k != 'sub'}
@@ -2355,6 +2368,10 @@ VACUUM_ROLES = {'vacuum': 'v', 'sweeping': 'v', 'mop': 'm', 'mopping': 'm', 'cus
 MODE_COVERED = frozenset(('off', 'off_raise_main_brush', 'custom', 'custom_water_flow', 'smart_mode', 'vac_followed_by_mop'))
 VACUUM_CHOICES = 6
 
+# VacuumEntityFeature.FAN_SPEED, from Home Assistant's source through the tile catalogue (catalogue/_ha.json).
+VACUUM_FAN_SPEED = catalogue.bits('vacuum', 'FAN_SPEED')
+
+
 def vacuum_label(value):
     key = VACUUM_LABELS.get(value)
     return short(screen_t(key) if key else str(value).replace('_', ' ').capitalize(), 24)
@@ -2435,7 +2452,10 @@ def vacuum_extras(tile, states, device):
     water = select(related['water'], lambda o, current: o not in covered) if 'water' in related else None
     if water:
         result['water'] = water
-    speeds = attrs.get('fan_speed_list')
+    # The suction speeds only with the vacuum's FAN_SPEED flag, as Home Assistant's card: an integration may list
+    # speeds for a feature that is off.
+    features = attrs.get('supported_features')
+    speeds = attrs.get('fan_speed_list') if isinstance(features, int) and features & VACUUM_FAN_SPEED else None
     fan = row([s for s in speeds if isinstance(s, str) and s not in covered]) if isinstance(speeds, list) else None
     if fan:
         result['fan'] = fan

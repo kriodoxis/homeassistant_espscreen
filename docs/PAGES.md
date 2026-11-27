@@ -68,6 +68,16 @@ already there, and anything past the screen's tile limit or page limit are left 
 went on. Paste, cut and removing several tiles are each one undo step. The pasted tiles stay chosen, so they can be
 moved or pasted again at once.
 
+Under the list stand the settings the chosen tiles share (`web/src/editor/shared-settings.ts`,
+`web/src/components/inspector/SharedSettings.vue`), under the same headings as in one tile's inspector. A setting shows
+when every chosen tile offers it with the same choices: three blinds of the same kind share what a blind can be set to
+(its controls, what a tap does, the small slider), and a blind beside a lamp only what any tile has (the second line,
+the colour). A row shows the value the tiles all have, or the word Mixed where they differ, and a pick is written to
+every one of them as one step of undo. What belongs to one tile alone stays in its own inspector: its name, its entity,
+the page a link goes to, the action to perform, and what is of one entity (a favourite, a map, a calendar, a to-do
+list, a meter, a template, a light's presets). The conditions of a row are those of the tile inspector
+(`TileInspector.vue`): a row added there is added in `offersOf` too, or it is one tile's alone.
+
 Contextual help uses Floating Vue through `HelpTip.vue`: a small help icon beside a label, only where the
 words alone don't say it. Help icons work with keyboard focus, pointer hover and a tap; Escape or leaving the
 help closes it. Errors, compatibility notices and unsaved-change status remain visible.
@@ -163,6 +173,26 @@ the pointer, so a page of many tiles carries one menu, not one per card.
   tile's size stays with the handles on its card.
 - The right mouse button is the mouse's alone. A finger held on a tile or a bar item drags it, so on a touch screen
   the ··· is the way to the menu.
+- Under a finger (`@media (pointer: coarse)` in `web/src/styles/app.css`) a menu's rows are 40 px tall and the menu
+  takes the room the window has before it scrolls.
+
+### What is open over the page
+
+What opens over the page stands apart from it, in the light look and the dark one:
+
+- A sheet, a dialog, a wizard and the search dim the page behind them with one colour, `--dim`
+  (`web/src/styles/tokens.css`). A new one uses that token and writes no colour of its own. A `<dialog>`'s backdrop
+  names a fallback beside it, since an older browser's backdrop does not read the page's tokens.
+- A popover (a menu, a list, a picker, a tip: `.ui-popover`) has no dim. It has a line around it, and in the dark look
+  its own greys a step lighter than what it opens over, set on `.ui-popover` so everything inside it reads them. It is
+  never wider than the window.
+- A toast shows above the phone's dock, and at the top of the window while a sheet is open, so it stays clear of the
+  sheet's keys. A sheet at its full height therefore starts 48 px from the top (`.app.phone .library`, `UiSheet`'s
+  `TOP`): the toast never lies on the sheet's head and the key that closes it. A tap on a toast's words sends it away.
+- The smallest keys (a tile's remove key, a switch, a help key) keep their look and get room around them that takes
+  the tap, under a finger. Such a key is the box its room is placed in (`position: relative` or `absolute`): the bot's
+  key in the phone's dock was not, and its ring, placed in the dock instead, took every tap meant for Add tile and
+  Save & send (docs/LAYOUTBOT.md, "On a phone").
 
 ## Home and detail pages
 
@@ -200,6 +230,8 @@ Most kinds reuse existing designs. A tall tile (1 × 2) keeps the single-column 
 Taller standard tiles extend the existing header. Media uses the selected playback or volume controls below track information. Selecting **Album cover** uses the artwork as a dimmed background on boards that support pictures, on every size: a card of one row has it behind its name and state too, its words light and its icon in a dark circle (older firmware put it in the icon's place). While nothing plays, a player whose library has covers shows them there, darkened: two along the shorter side of a taller card, one strip as high as the card on a card of one row (`rest_mosaic.py`). A thermostat of two rows shows its temperature between − and + and a bar with one segment per mode (the active one filled; an airco shows heat and cool first, the rest behind "…"). Off is not on the bar: a tap on the tile's circle turns the thermostat on or off (firmware 0.3.3). Light brightness and other sliders reuse the existing large controls. Unavailable entities keep their unavailable state and their detail action.
 
 Controls remain an explicit choice in the tile inspector. Increasing height preserves a previously selected group and does not enable a default group on a previously unconfigured tile. There is one selected group per tile, and additional height alone does not combine playback with volume. Two choices are combined groups on purpose: climate's **Temperature − / + and mode keys** (on a tile of two rows or more) and a cover's position or buttons with **Slat tilt**. Single-row tiles and existing full-page designs keep their original renderer; only the album cover lies behind a single-row card too.
+
+A thermostat's tile says its mode, the temperature it is set to and the room's temperature under its name: "Cool · 19° · Now 22.5°" (firmware 0.68.0, `tile_controls::climate_tile_line`). While the second line is **Automatic**, chips under it choose the parts: **Mode**, **Action** (what it is doing, Home Assistant's `hvac_action`), **Set to** and **Now**. The choice is kept in the tile's second line as `show:` and the parts in that order (`show:mode,now`), and the three parts a thermostat says by itself are stored as nothing at all. A thermostat that is off says Off and, when chosen, the room's temperature. Where the tile's own − and + show the temperature it is set to, the line leaves it out, and a tile too narrow for the whole line drops the room's temperature first, then the mode (`tile_controls::climate_tile_shorter`), so the temperature it is set to stays readable beside a long word for the mode. A screen with older firmware reads `show:` as Automatic and says its own line.
 
 The layout measures the available content rectangle, active fonts and physical touch sizes. Optional text gives way before touch targets. A control group that cannot fit an unusually dense custom grid is left in the detail view instead of drawing overlapping buttons. Source artwork is cropped, dimmed and rounded by the add-on at exactly the tile's pixels, one picture per tile (docs/CAMERA.md, "A picture per tile"), and each picture is bounded by the size cap on its own; a missing or changed picture returns to the normal tile palette. The editor fetches prepared pixels through its relative Ingress API, never a Home Assistant token or source URL.
 

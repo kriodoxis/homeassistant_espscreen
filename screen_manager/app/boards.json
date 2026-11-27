@@ -67,7 +67,7 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 19,
    "icon": 29,
@@ -204,7 +204,7 @@
   "dimmable": true,
   "dpi": 143,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 18,
    "icon": 28,
@@ -304,7 +304,7 @@
   "dimmable": true,
   "dpi": 143,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 18,
    "icon": 28,
@@ -404,7 +404,7 @@
   "dimmable": true,
   "dpi": 144,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 23,
    "icon": 36,
@@ -529,7 +529,7 @@
   "dimmable": true,
   "dpi": 170,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 27,
    "icon": 42,
@@ -661,7 +661,7 @@
   "dimmable": true,
   "dpi": 146,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 18,
    "icon": 29,
@@ -810,7 +810,7 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 27,
    "icon": 42,
@@ -987,7 +987,7 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 27,
    "icon": 42,
@@ -1129,7 +1129,7 @@
   "dimmable": true,
   "dpi": 165,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 26,
    "icon": 41,
@@ -1306,7 +1306,7 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 34,
    "icon": 54,
@@ -1483,7 +1483,7 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 24,
    "icon": 37,
@@ -1660,7 +1660,7 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 24,
    "icon": 37,
@@ -1837,7 +1837,7 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 24,
    "icon": 37,
@@ -1979,7 +1979,7 @@
   "dimmable": true,
   "dpi": 187,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 30,
    "icon": 46,
@@ -2256,7 +2256,7 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 30,
    "icon": 47,
@@ -2370,6 +2370,16 @@
   },
   "battery": false,
   "board": "sensecapd1",
+  "camera": {
+   "full": [
+    480,
+    480
+   ],
+   "thumb": [
+    395,
+    222
+   ]
+  },
   "can_standby": true,
   "catalog": {
    "calibrate": false,
@@ -2379,16 +2389,27 @@
    "name": "SenseCAP",
    "order": 24,
    "recommended": false,
-   "settings": [],
+   "settings": [
+    "volume"
+   ],
    "status": "experimental",
+   "steps": [
+    {
+     "chip": "indicator-rp2040",
+     "id": "buzzer",
+     "kind": "chip_firmware"
+    }
+   ],
    "touch": "FT6336U"
   },
   "chip": "ESP32-S3",
   "columns": 2,
   "dimmable": true,
   "dpi": 172,
-  "features": [],
-  "firmware": "0.64.0",
+  "features": [
+   "speaker"
+  ],
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 27,
    "icon": 42,
@@ -2423,6 +2444,16 @@
   ],
   "orientations": {
    "landscape": {
+    "camera": {
+     "full": [
+      480,
+      480
+     ],
+     "thumb": [
+      395,
+      222
+     ]
+    },
     "columns": 2,
     "height": 480,
     "max": [
@@ -2438,6 +2469,16 @@
     "width": 480
    },
    "portrait": {
+    "camera": {
+     "full": [
+      480,
+      480
+     ],
+     "thumb": [
+      395,
+      222
+     ]
+    },
     "columns": 2,
     "height": 480,
     "max": [
@@ -2510,7 +2551,7 @@
   "dimmable": true,
   "dpi": 133,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 21,
    "icon": 33,
@@ -2692,7 +2733,7 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 47,
    "icon": 73,
@@ -2870,7 +2911,7 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 24,
    "icon": 37,
@@ -3048,7 +3089,7 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 24,
    "icon": 37,
@@ -3180,7 +3221,7 @@
   "dimmable": true,
   "dpi": 165,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 26,
    "icon": 41,
@@ -3307,7 +3348,7 @@
   "dimmable": false,
   "dpi": 217,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 34,
    "icon": 54,
@@ -3449,7 +3490,7 @@
   "dimmable": true,
   "dpi": 217,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 34,
    "icon": 54,
@@ -3591,7 +3632,7 @@
   "dimmable": true,
   "dpi": 170,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 27,
    "icon": 42,
@@ -3733,7 +3774,7 @@
   "dimmable": true,
   "dpi": 170,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 27,
    "icon": 42,
@@ -3875,7 +3916,7 @@
   "dimmable": false,
   "dpi": 187,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 30,
    "icon": 46,
@@ -4017,7 +4058,7 @@
   "dimmable": false,
   "dpi": 133,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 21,
    "icon": 33,
@@ -4159,7 +4200,7 @@
   "dimmable": true,
   "dpi": 170,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 27,
    "icon": 42,
@@ -4337,7 +4378,7 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 40,
    "icon": 63,
@@ -4515,7 +4556,7 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 33,
    "icon": 52,
@@ -4693,7 +4734,7 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 27,
    "icon": 42,
@@ -4835,7 +4876,7 @@
   "dimmable": true,
   "dpi": 165,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 26,
    "icon": 41,
@@ -5010,7 +5051,7 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 19,
    "icon": 29,
@@ -5147,7 +5188,7 @@
   "dimmable": true,
   "dpi": 143,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 18,
    "icon": 28,
@@ -5247,7 +5288,7 @@
   "dimmable": true,
   "dpi": 143,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 18,
    "icon": 28,
@@ -5347,7 +5388,7 @@
   "dimmable": true,
   "dpi": 144,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 23,
    "icon": 36,
@@ -5472,7 +5513,7 @@
   "dimmable": true,
   "dpi": 170,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 27,
    "icon": 42,
@@ -5604,7 +5645,7 @@
   "dimmable": true,
   "dpi": 146,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 18,
    "icon": 29,
@@ -5753,7 +5794,7 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 27,
    "icon": 42,
@@ -5930,7 +5971,7 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 27,
    "icon": 42,
@@ -6072,7 +6113,7 @@
   "dimmable": true,
   "dpi": 165,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 26,
    "icon": 41,
@@ -6249,7 +6290,7 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 34,
    "icon": 54,
@@ -6426,7 +6467,7 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 24,
    "icon": 37,
@@ -6603,7 +6644,7 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 24,
    "icon": 37,
@@ -6780,7 +6821,7 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 24,
    "icon": 37,
@@ -6922,7 +6963,7 @@
   "dimmable": true,
   "dpi": 187,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 30,
    "icon": 46,
@@ -7196,7 +7237,7 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 19,
    "icon": 29,
@@ -7333,7 +7374,7 @@
   "dimmable": true,
   "dpi": 143,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 18,
    "icon": 28,
@@ -7433,7 +7474,7 @@
   "dimmable": true,
   "dpi": 143,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 18,
    "icon": 28,
@@ -7533,7 +7574,7 @@
   "dimmable": true,
   "dpi": 144,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 23,
    "icon": 36,
@@ -7658,7 +7699,7 @@
   "dimmable": true,
   "dpi": 170,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 27,
    "icon": 42,
@@ -7790,7 +7831,7 @@
   "dimmable": true,
   "dpi": 146,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 18,
    "icon": 29,
@@ -7939,7 +7980,7 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 27,
    "icon": 42,
@@ -8116,7 +8157,7 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 27,
    "icon": 42,
@@ -8258,7 +8299,7 @@
   "dimmable": true,
   "dpi": 165,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 26,
    "icon": 41,
@@ -8435,7 +8476,7 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 34,
    "icon": 54,
@@ -8612,7 +8653,7 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 24,
    "icon": 37,
@@ -8789,7 +8830,7 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 24,
    "icon": 37,
@@ -8966,7 +9007,7 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 24,
    "icon": 37,
@@ -9108,7 +9149,7 @@
   "dimmable": true,
   "dpi": 187,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 30,
    "icon": 46,
@@ -9385,7 +9426,7 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 30,
    "icon": 47,
@@ -9499,6 +9540,16 @@
   },
   "battery": false,
   "board": "sensecapd1",
+  "camera": {
+   "full": [
+    480,
+    480
+   ],
+   "thumb": [
+    395,
+    222
+   ]
+  },
   "can_standby": true,
   "catalog": {
    "calibrate": false,
@@ -9508,16 +9559,27 @@
    "name": "SenseCAP",
    "order": 24,
    "recommended": false,
-   "settings": [],
+   "settings": [
+    "volume"
+   ],
    "status": "experimental",
+   "steps": [
+    {
+     "chip": "indicator-rp2040",
+     "id": "buzzer",
+     "kind": "chip_firmware"
+    }
+   ],
    "touch": "FT6336U"
   },
   "chip": "ESP32-S3",
   "columns": 2,
   "dimmable": true,
   "dpi": 172,
-  "features": [],
-  "firmware": "0.64.0",
+  "features": [
+   "speaker"
+  ],
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 27,
    "icon": 42,
@@ -9552,6 +9614,16 @@
   ],
   "orientations": {
    "landscape": {
+    "camera": {
+     "full": [
+      480,
+      480
+     ],
+     "thumb": [
+      395,
+      222
+     ]
+    },
     "columns": 2,
     "height": 480,
     "max": [
@@ -9567,6 +9639,16 @@
     "width": 480
    },
    "portrait": {
+    "camera": {
+     "full": [
+      480,
+      480
+     ],
+     "thumb": [
+      395,
+      222
+     ]
+    },
     "columns": 2,
     "height": 480,
     "max": [
@@ -9639,7 +9721,7 @@
   "dimmable": true,
   "dpi": 133,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 21,
    "icon": 33,
@@ -9821,7 +9903,7 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 47,
    "icon": 73,
@@ -9999,7 +10081,7 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 24,
    "icon": 37,
@@ -10177,7 +10259,7 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 24,
    "icon": 37,
@@ -10309,7 +10391,7 @@
   "dimmable": true,
   "dpi": 165,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 26,
    "icon": 41,
@@ -10436,7 +10518,7 @@
   "dimmable": false,
   "dpi": 217,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 34,
    "icon": 54,
@@ -10578,7 +10660,7 @@
   "dimmable": true,
   "dpi": 217,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 34,
    "icon": 54,
@@ -10720,7 +10802,7 @@
   "dimmable": true,
   "dpi": 170,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 27,
    "icon": 42,
@@ -10862,7 +10944,7 @@
   "dimmable": true,
   "dpi": 170,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 27,
    "icon": 42,
@@ -11004,7 +11086,7 @@
   "dimmable": false,
   "dpi": 187,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 30,
    "icon": 46,
@@ -11146,7 +11228,7 @@
   "dimmable": false,
   "dpi": 133,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 21,
    "icon": 33,
@@ -11288,7 +11370,7 @@
   "dimmable": true,
   "dpi": 170,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 27,
    "icon": 42,
@@ -11466,7 +11548,7 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 40,
    "icon": 63,
@@ -11644,7 +11726,7 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 33,
    "icon": 52,
@@ -11822,7 +11904,7 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 27,
    "icon": 42,
@@ -11964,7 +12046,7 @@
   "dimmable": true,
   "dpi": 165,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 26,
    "icon": 41,
@@ -12142,7 +12224,7 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 30,
    "icon": 47,
@@ -12256,6 +12338,16 @@
   },
   "battery": false,
   "board": "sensecapd1",
+  "camera": {
+   "full": [
+    480,
+    480
+   ],
+   "thumb": [
+    395,
+    222
+   ]
+  },
   "can_standby": true,
   "catalog": {
    "calibrate": false,
@@ -12265,16 +12357,27 @@
    "name": "SenseCAP",
    "order": 24,
    "recommended": false,
-   "settings": [],
+   "settings": [
+    "volume"
+   ],
    "status": "experimental",
+   "steps": [
+    {
+     "chip": "indicator-rp2040",
+     "id": "buzzer",
+     "kind": "chip_firmware"
+    }
+   ],
    "touch": "FT6336U"
   },
   "chip": "ESP32-S3",
   "columns": 2,
   "dimmable": true,
   "dpi": 172,
-  "features": [],
-  "firmware": "0.64.0",
+  "features": [
+   "speaker"
+  ],
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 27,
    "icon": 42,
@@ -12309,6 +12412,16 @@
   ],
   "orientations": {
    "landscape": {
+    "camera": {
+     "full": [
+      480,
+      480
+     ],
+     "thumb": [
+      395,
+      222
+     ]
+    },
     "columns": 2,
     "height": 480,
     "max": [
@@ -12324,6 +12437,16 @@
     "width": 480
    },
    "portrait": {
+    "camera": {
+     "full": [
+      480,
+      480
+     ],
+     "thumb": [
+      395,
+      222
+     ]
+    },
     "columns": 2,
     "height": 480,
     "max": [
@@ -12396,7 +12519,7 @@
   "dimmable": true,
   "dpi": 133,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 21,
    "icon": 33,
@@ -12578,7 +12701,7 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 47,
    "icon": 73,
@@ -12756,7 +12879,7 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 24,
    "icon": 37,
@@ -12934,7 +13057,7 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 24,
    "icon": 37,
@@ -13066,7 +13189,7 @@
   "dimmable": true,
   "dpi": 165,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 26,
    "icon": 41,
@@ -13193,7 +13316,7 @@
   "dimmable": false,
   "dpi": 217,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 34,
    "icon": 54,
@@ -13335,7 +13458,7 @@
   "dimmable": true,
   "dpi": 217,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 34,
    "icon": 54,
@@ -13477,7 +13600,7 @@
   "dimmable": true,
   "dpi": 170,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 27,
    "icon": 42,
@@ -13619,7 +13742,7 @@
   "dimmable": true,
   "dpi": 170,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 27,
    "icon": 42,
@@ -13761,7 +13884,7 @@
   "dimmable": false,
   "dpi": 187,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 30,
    "icon": 46,
@@ -13903,7 +14026,7 @@
   "dimmable": false,
   "dpi": 133,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 21,
    "icon": 33,
@@ -14045,7 +14168,7 @@
   "dimmable": true,
   "dpi": 170,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 27,
    "icon": 42,
@@ -14223,7 +14346,7 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 40,
    "icon": 63,
@@ -14401,7 +14524,7 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 33,
    "icon": 52,
@@ -14579,7 +14702,7 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 27,
    "icon": 42,
@@ -14721,7 +14844,7 @@
   "dimmable": true,
   "dpi": 165,
   "features": [],
-  "firmware": "0.64.0",
+  "firmware": "0.68.0",
   "fonts": {
    "headline": 26,
    "icon": 41,
